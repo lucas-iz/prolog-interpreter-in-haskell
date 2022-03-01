@@ -1,5 +1,15 @@
 # prolog-interpreter-in-haskell
 
-- der erste Versuch
-- test zwei
-- nummer drei
+## TODO
+bis 04.03. (Freitag)
+- Aufgabe 1
+- Aufgabe 2
+- Aufgabe 3
+- Aufgabe 4
+
+bis 11.03. (Freitag)
+- Aufgabe 5
+- Aufgabe 6
+- Aufgabe 7
+- Aufgabe 8
+- Aufgabe 9
