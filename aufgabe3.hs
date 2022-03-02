@@ -14,16 +14,16 @@ instance Vars Term where
         allVarsH ((Comb _ t1) : xs) = allVarsH t1 ++ allVarsH xs
 instance Vars Rule where
   allVars (Rule t []) = allVars t
-  allVars (Rule t ts) = allVars t ++ sub ts
+  allVars (Rule t ts) = nubV (allVars t ++ sub ts)
     where
       sub [] = []
       sub (x : xs) = allVars x ++ sub xs
 instance Vars Prog where
   allVars (Prog []) = []
-  allVars (Prog (p : ps)) = allVars p ++ allVars (Prog ps)
+  allVars (Prog (p : ps)) = nubV (allVars p ++ allVars (Prog ps))
 instance Vars Goal where
   allVars (Goal []) = []
-  allVars (Goal (t : ts)) = allVars t ++ allVars (Goal ts)
+  allVars (Goal (t : ts)) = nubV (allVars t ++ allVars (Goal ts))
 
 -- Remove all duplicates in a list of integers.
 nubV :: [VarName] -> [VarName]
