@@ -6,7 +6,7 @@ class Vars a where
 instance Vars Term where
     allVars (Var (VarName x)) = [VarName x]
     allVars (Comb _ []) = []
-    allVars (Comb _ t) = allVarsH t
+    allVars (Comb _ t) = nubV (allVarsH t)
      where
         allVarsH [] = [] 
         allVarsH (Var (VarName x) : xs) = VarName x : allVarsH xs
@@ -24,3 +24,8 @@ instance Vars Prog where
 instance Vars Goal where
   allVars (Goal []) = []
   allVars (Goal (t : ts)) = allVars t ++ allVars (Goal ts)
+
+-- Remove all duplicates in a list of integers.
+nubV :: [VarName] -> [VarName]
+nubV []     = []
+nubV (x:xs) = x : nubV (filter (/=x) xs)
