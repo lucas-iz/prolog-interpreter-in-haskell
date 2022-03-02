@@ -21,7 +21,6 @@ instance Vars Rule where
 instance Vars Prog where
   allVars (Prog []) = []
   allVars (Prog (p : ps)) = allVars p ++ allVars (Prog ps)
-  
 instance Vars Goal where
   allVars (Goal []) = []
   allVars (Goal (t : ts)) = allVars t ++ allVars (Goal ts)
