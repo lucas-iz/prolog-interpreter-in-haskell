@@ -9,19 +9,18 @@ instance Vars Term where
     allVars (Comb _ t) = allVarsH t
      where
         allVarsH [] = [] 
-        allVarsH (Var (VarName x) : xs) =  [VarName x] ++ allVarsH xs
+        allVarsH (Var (VarName x) : xs) = VarName x : allVarsH xs
         allVarsH ((Comb _ []) : xs) = allVarsH xs
         allVarsH ((Comb _ t1) : xs) = allVarsH t1 ++ allVarsH xs
-
-
-
 instance Vars Rule where
   allVars (Rule t []) = allVars t
   allVars (Rule t ts) = allVars t ++ sub ts
     where
       sub [] = []
       sub (x : xs) = allVars x ++ sub xs
-
 instance Vars Prog where
   allVars (Prog []) = []
   allVars (Prog (p : ps)) = allVars p ++ allVars (Prog ps)
+instance Vars Goal where
+  allVars (Goal []) = []
+  allVars (Goal (t : ts)) = allVars t ++ allVars (Goal ts)
