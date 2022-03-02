@@ -13,3 +13,7 @@ instance Vars Rule where
     where
       sub [] = []
       sub (x : xs) = allVars x ++ sub xs
+
+instance Vars Prog where
+  allVars (Prog []) = []
+  allVars (Prog (p : ps)) = allVars p ++ allVars (Prog ps)
