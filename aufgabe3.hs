@@ -6,12 +6,12 @@ class Vars a where
 instance Vars Term where
     allVars (Var (VarName x)) = [VarName x]
     allVars (Comb _ []) = []
-    allVars (Comb _ t) = nubV (allVarsH t)
+    allVars (Comb _ t) =  nubV (allVarsH t)
      where
         allVarsH [] = [] 
-        allVarsH (Var (VarName x) : xs) =  VarName x : allVarsH xs
-        allVarsH ((Comb _ []) : xs) = allVarsH xs
-        allVarsH ((Comb _ t1) : xs) = allVarsH t1 ++ allVarsH xs
+        allVarsH (Var (VarName x) : xs) = nubV (VarName x : allVarsH xs)
+        allVarsH ((Comb _ []) : xs) = nubV (allVarsH xs)
+        allVarsH ((Comb _ t1) : xs) = nubV (allVarsH t1 ++ allVarsH xs)
 
 
 
