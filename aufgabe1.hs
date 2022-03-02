@@ -12,21 +12,26 @@ instance Pretty Term where
       subPretty (y : ys) = pretty y ++ ", " ++ subPretty ys
       subPretty [] = []
 
--- TODO => Rules-Instanzen
--- ghci > pretty (Rule (Comb "f" [Var (VarName "X"), Comb "true" []]) [])
--- "f(X, true)."
--- ghci > pretty (Rule (Comb "f" [Var (VarName "X"), Comb "true" []]) [Comb "g" [Var (VarName "X")]])
--- "f(X, true) :- g(X)."
--- ghci > pretty (Rule (Comb "f" [Var (VarName "X"), Comb "true" []]) [Comb "g" [Var (VarName "X")], Comb "h" []])
--- "f(X, true) :- g(X), h."
+instance Pretty Rule where
+  pretty (Rule t []) = pretty t ++ "."
+  pretty (Rule t ts) = pretty t ++ " :- " ++ subPretty ts ++ "."
+    where
+      subPretty [y] = pretty y
+      subPretty (y : ys) = pretty y ++ ", " ++ subPretty ys
+      subPretty [] = []
 
--- TODO => Prog-Instanzen
--- ghci > pretty (Prog [])
--- ""
--- ghci > pretty (Prog [Rule (Comb "f" [Var (VarName "X"), Comb "true" []]) []])
--- "f(X, true)."
--- ghci > pretty (Prog [Rule (Comb "append" [Var (VarName "[]"), Var (VarName "Ys"), Var (VarName "Ys")]) [], Rule (Comb "append" [Comb "." [Var (VarName "X"), Var (VarName "Xs")], Var (VarName "Ys"), Comb "." [Var (VarName "X"), Var (VarName "Zs")]]) [Comb "append" [Var (VarName "Xs"), Var (VarName "Ys"), Var (VarName "Zs")]]])
--- "append([], Ys, Ys).\nappend(.(X, Xs), Ys, .(X, Zs)) :- append(Xs, Ys, Zs)."
+instance Pretty Prog where
+  pretty (Prog []) = ""
+  pretty (Prog [p]) = pretty p
+  pretty (Prog (p : ps)) = pretty p ++ "\n" ++ pretty (Prog ps)
+
+instance Pretty Goal where
+  pretty (Goal []) = "?- ."
+  pretty (Goal [g]) = "?- " ++ pretty g ++ "."
+  pretty (Goal (g : gs)) = "?- " ++ subPretty (g : gs)
+    where
+      subPretty (l : ls) = pretty l ++ ", " ++ pretty (Goal ls)
+      subPretty [] = []
 
 -- TODO => Goal-Instanzen
 -- ghci > pretty (Goal [])
