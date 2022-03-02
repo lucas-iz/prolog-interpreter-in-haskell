@@ -3,7 +3,8 @@
 ## TODO
 bis 04.03. (Freitag)
 - [x] Aufgabe 1 
-- [ ] Aufgabe 2
+- [x] Aufgabe 2
+- [ ] Bonusaufgabe - Listen
 - [ ] Aufgabe 3
 - [ ] Aufgabe 4
 
