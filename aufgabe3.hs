@@ -52,8 +52,4 @@ tupelToVarName ((x1,x2) : xs) = VarName (x2 : show x1) : tupelToVarName xs
 
 -- computes cross product of 2 lists
 crossproduct :: [a] -> [b] -> [(a, b)]
-crossproduct listeA listeB = [(a, b) | a <- listeA, b <- listeB] 
-
--- bla
-
-
+crossproduct listeA listeB = [(a, b) | a <- listeA, b <- listeB]
