@@ -30,13 +30,6 @@ instance Pretty Goal where
   pretty (Goal [g]) = "?- " ++ pretty g ++ "."
   pretty (Goal (g : gs)) = "?- " ++ subPretty (g : gs)
     where
-      subPretty (l : ls) = pretty l ++ ", " ++ pretty (Goal ls)
+      subPretty [l] = pretty l ++ "."
+      subPretty (l : ls) = pretty l ++ ", " ++ subPretty ls
       subPretty [] = []
-
--- TODO => Goal-Instanzen
--- ghci > pretty (Goal [])
--- "?- ."
--- ghci > pretty (Goal [Comb "=" [Var (VarName "X"), Comb "false" []]])
--- "?- =(X, false)."
--- ghci > pretty (Goal [Comb "=" [Var (VarName "X"), Comb "false" []], Comb "=" [Var (VarName "X"), Comb "true" []]])
--- "?- =(X, false), =(X, true)."
