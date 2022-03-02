@@ -1,3 +1,4 @@
+module Aufgabe3 where
 import Type
 
 class Vars a where
