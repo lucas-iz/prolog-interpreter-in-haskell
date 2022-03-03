@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 import Type
 import Aufgabe3
 
@@ -25,15 +24,8 @@ apply (Subst []) t = t
 apply (Subst [(a,b)]) (Var t) | a == t    = b
                               | otherwise = Var t
 apply (Subst (r:rs)) (Var t)  = apply (Subst rs) (apply (Subst [r]) (Var t))
--- apply (Subst [(a,b)]) (Comb n (t:ts)) = apply (Subst [(a,b)]) (Comb n (ersetze:ts))
---    where 
---       ersetze = apply (Subst [(a,b)]) t)                               
-
-
--- apply (Subst [(VarName "I", Var (VarName "J")),(VarName "J", Var (VarName "H"))]) (Var (VarName "I"))
-
--- apply (Subst (x:xs)) (Comb _ list) = ???
-
-
--- Var VarName
--- Comb CombName [Term]
+apply (Subst [(a,b)]) (Comb n list) = Comb n (map sub list)
+   where 
+      sub t = apply (Subst [(a,b)]) t
+apply (Subst (r:rs)) (Comb n list) = apply (Subst rs) (apply (Subst [r]) (Comb n list))
+  
