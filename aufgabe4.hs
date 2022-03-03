@@ -3,25 +3,24 @@ import Type
 import Aufgabe3
 
 -- {A->B} // (a,b)
-data Subst = Subst [(VarName, Term)] | Empty
+data Subst = Subst [(VarName, Term)]
   deriving (Show)
 
 -- Aufruf: domain(Subst (VarName "c", Comb "1" [Var (VarName "b"), Var (VarName "c")]))
 domain :: Subst -> [VarName]
 --domain (Subst (a, b)) = filter (/= a) (allVars b)
-domain Empty = []
 domain (Subst []) = []
 domain (Subst ((a, b) : rest)) = filter (/= a) (allVars b) ++ domain (Subst rest)
 
 empty :: Subst
-empty = Empty
+empty = Subst []
 
 single :: VarName -> Term -> Subst
-single a b | a `elem` (allVars b) = Empty          -- verhindert {A->A}
+single a b | a `elem` (allVars b) = Subst []          -- verhindert {A->A}
            | otherwise            = Subst [(a, b)]
 
+
 apply :: Subst -> Term -> Term
-apply Empty t      = t
 apply (Subst []) t = t
 apply (Subst [(a,b)]) (Var t) | a == t    = b
                               | otherwise = Var t
