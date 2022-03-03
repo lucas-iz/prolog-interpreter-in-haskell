@@ -20,9 +20,14 @@ empty = Empty
 single :: VarName -> Term -> Subst
 single a b = Subst [(a, b)]
 
--- apply :: Subst -> Term -> Term
--- apply Empty t = t
--- apply (Subst (a,b)) t =
+apply :: Subst -> Term -> Term
+apply Empty t = t
+apply (Subst []) t = t
+
+-- apply (Subst (x:xs)) (Var name) = ???
+-- apply (Subst (x:xs)) (Comb _ list) = ???
+
+-- [(a,b),(c,d),(e,f)] (Var (VarName "A"))
 
 -- Var VarName
 -- Comb CombName [Term]
