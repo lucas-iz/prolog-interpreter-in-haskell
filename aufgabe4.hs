@@ -13,7 +13,10 @@ data Subst = Subst [(VarName, Term)]
 -- Aufruf: domain(Subst (VarName "c", Comb "1" [Var (VarName "b"), Var (VarName "c")]))
 domain :: Subst -> [VarName]
 domain (Subst []) = []
-domain (Subst ((a, b) : rest)) = filter (/= a) (allVars b) ++ domain (Subst rest)
+-- domain (Subst ((a, b) : rest)) = filter (/= a) (allVars b) ++ domain (Subst rest)
+domain (Subst ((a,b) : rest))
+                     | Var a == b = domain (Subst rest)
+                     | otherwise = a : domain (Subst rest)
 
 -- 3. Definieren Sie dann zwei Funktionen empty :: Subst und single :: VarName -> Term -> Subst zum Erstellen einer leeren Substitution bzw. einer Substitution,
 -- die lediglich eine einzelne Variable auf einen Term abbildet.
@@ -21,8 +24,9 @@ empty :: Subst
 empty = Subst []
  
 single :: VarName -> Term -> Subst
-single a b | a `elem` (allVars b) = Subst []          -- verhindert {A->A}
-           | otherwise            = Subst [(a, b)]
+single a b = Subst [(a,b)]
+-- single a b | a `elem` allVars b = Subst []          -- verhindert {A->A}
+--            | otherwise            = Subst [(a, b)]
 
 -- 4. Implementieren Sie eine Funktion apply :: Subst -> Term -> Term, die eine Substitution auf einen Term anwendet.
 apply :: Subst -> Term -> Term
@@ -99,7 +103,10 @@ test2 = pretty (single (VarName "F") (Comb "f" [Var (VarName "D"), Comb "true" [
 -- 8.
 instance Vars Subst where
    allVars (Subst []) = []
-   allVars (Subst ((a,b):xs)) = [a] ++ allVars b ++ allVars (Subst xs)
+   --allVars (Subst ((a,b):xs)) = [a] ++ allVars b ++ allVars (Subst xs)
+   allVars (Subst ((a,b):xs)) 
+                     | Var a == b = allVars (Subst xs)
+                     | otherwise = [a] ++ allVars b ++ allVars (Subst xs)
 
 -- 9.
 instance Arbitrary Subst where
@@ -114,4 +121,24 @@ prop_applyEmpty t = apply empty t == t
 prop_applySingle :: VarName -> Term -> Bool
 prop_applySingle x t = apply (single x t) (Var x) == t
 
+-- prop_applyCompose
+
+prop_domainEmpty :: Bool 
+prop_domainEmpty = domain empty == []
+
+prop_domainSingle :: VarName -> Bool 
+prop_domainSingle x = domain (single x (Var x)) == []
+
+prop_domainSingle2 :: VarName -> Term -> Property
+prop_domainSingle2 x t = t /= Var x ==> domain (single x t) == [x]
+
+-- prop_domainCompose
+
+-- prop_domainCompose2
+
+prop_allVarsEmpty :: Bool 
+prop_allVarsEmpty = allVars empty == []
+
+prop_allVarsSingle :: VarName -> Bool 
+prop_allVarsSingle x = allVars (single x (Var x)) == []
 
