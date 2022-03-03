@@ -22,7 +22,7 @@ domain (Subst ((a,b) : rest))
 -- die lediglich eine einzelne Variable auf einen Term abbildet.
 empty :: Subst
 empty = Subst []
- 
+
 single :: VarName -> Term -> Subst
 single a b = Subst [(a,b)]
 -- single a b | a `elem` allVars b = Subst []          -- verhindert {A->A}
@@ -54,15 +54,15 @@ restrictTo _ [] = empty
 restrictTo (Subst s) v = Subst (sub s v)
   where
     sub [] _ = []
-    sub (x:xs) t | hf (Subst [x]) t = [x] ++ sub xs t 
+    sub (x:xs) t | hf (Subst [x]) t = [x] ++ sub xs t
                  | otherwise = sub xs t
-                            
+
 -- Hilfsfunktion: überprüft, ob alle Variablen in der Domäne einer Substitution in einer gegebenen Liste an Variablennamen vorkommen
 hf :: Subst -> [VarName] -> Bool
 hf (Subst []) _ = True
 hf _ [] = False
-hf (Subst (s:_)) v =  hhf (domain (Subst [s])) v 
-  where 
+hf (Subst (s:_)) v =  hhf (domain (Subst [s])) v
+  where
     hhf [] _ = True
     hhf (d:dd) t = d `elem` t && hhf dd t
 
@@ -104,7 +104,7 @@ test2 = pretty (single (VarName "F") (Comb "f" [Var (VarName "D"), Comb "true" [
 instance Vars Subst where
    allVars (Subst []) = []
    --allVars (Subst ((a,b):xs)) = [a] ++ allVars b ++ allVars (Subst xs)
-   allVars (Subst ((a,b):xs)) 
+   allVars (Subst ((a,b):xs))
                      | Var a == b = allVars (Subst xs)
                      | otherwise = [a] ++ allVars b ++ allVars (Subst xs)
 
@@ -123,10 +123,10 @@ prop_applySingle x t = apply (single x t) (Var x) == t
 
 -- prop_applyCompose
 
-prop_domainEmpty :: Bool 
+prop_domainEmpty :: Bool
 prop_domainEmpty = domain empty == []
 
-prop_domainSingle :: VarName -> Bool 
+prop_domainSingle :: VarName -> Bool
 prop_domainSingle x = domain (single x (Var x)) == []
 
 prop_domainSingle2 :: VarName -> Term -> Property
@@ -136,15 +136,30 @@ prop_domainSingle2 x t = t /= Var x ==> domain (single x t) == [x]
 
 -- prop_domainCompose2
 
-prop_allVarsEmpty :: Bool 
+prop_allVarsEmpty :: Bool
 prop_allVarsEmpty = allVars empty == []
 
-prop_allVarsSingle :: VarName -> Bool 
+prop_allVarsSingle :: VarName -> Bool
 prop_allVarsSingle x = allVars (single x (Var x)) == []
  
 prop_allVarsSingle2 :: VarName -> Term -> Property
 prop_allVarsSingle2 x t = t /= Var x ==> allVars (single x t) == allVars t ++ [x] 
                                       || allVars (single x t) == [x] ++ allVars t
+
+-- prop_allVarsCompose
+
+-- prop_allVarsCompose2
+
+prop_domainAllVars :: Subst -> Bool
+prop_domainAllVars s = testF s
+                      
+-- Testfunktion für prop_domainAllVars
+testF :: Subst -> Bool
+testF (Subst []) = True
+testF (Subst s) = hilfF (domain (Subst s))
+  where
+    hilfF [] = True
+    hilfF (d : ds) = d `elem` allVars (Subst s) && hilfF ds
 
 prop_restrictEmpty :: [VarName] -> Bool 
 prop_restrictEmpty xs = domain (restrictTo empty xs) == []
@@ -152,6 +167,7 @@ prop_restrictEmpty xs = domain (restrictTo empty xs) == []
 prop_restrictTo :: Subst -> [VarName] -> Bool 
 prop_restrictTo s xs = subProp (restrictTo s xs) xs 
 
+-- Testfunktion für prop_restrictTo
 subProp :: Subst -> [VarName] -> Bool 
 subProp (Subst []) _ = True
 subProp (Subst s) xs = helfer (domain (Subst s))
