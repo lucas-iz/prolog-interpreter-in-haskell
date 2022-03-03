@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 import Type
 import Aufgabe3
 
@@ -8,9 +7,11 @@ data Subst = Subst [(VarName, Term)]
 
 -- Aufruf: domain(Subst (VarName "c", Comb "1" [Var (VarName "b"), Var (VarName "c")]))
 domain :: Subst -> [VarName]
+
 --domain (Subst (a, b)) = filter (/= a) (allVars b)
 domain (Subst []) = []
 domain (Subst ((a, b) : rest)) = filter (/= a) (allVars b) ++ domain (Subst rest)
+
 
 empty :: Subst
 empty = Subst []
