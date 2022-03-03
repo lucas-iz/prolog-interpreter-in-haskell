@@ -6,7 +6,7 @@ bis 04.03. (Freitag)
 - [x] Aufgabe 2
 - [ ] Bonusaufgabe - Listen
 - [x] Aufgabe 3
-- [ ] Aufgabe 4
+- [x] Aufgabe 4 (bis auf 4.5)
 
 bis 11.03. (Freitag)
 - [ ] Aufgabe 5
