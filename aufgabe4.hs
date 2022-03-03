@@ -10,7 +10,6 @@ data Subst = Subst [(VarName, Term)]
 -- Mit dem Definitionsbereich einer Substitution sind dabei aus praktischen Gründen nur diejenigen Variablen gemeint, die nicht auf sich selbst abgebildet werden.
 -- Aufruf: domain(Subst (VarName "c", Comb "1" [Var (VarName "b"), Var (VarName "c")]))
 domain :: Subst -> [VarName]
---domain (Subst (a, b)) = filter (/= a) (allVars b)
 domain (Subst []) = []
 domain (Subst ((a, b) : rest)) = filter (/= a) (allVars b) ++ domain (Subst rest)
 
@@ -18,7 +17,7 @@ domain (Subst ((a, b) : rest)) = filter (/= a) (allVars b) ++ domain (Subst rest
 -- die lediglich eine einzelne Variable auf einen Term abbildet.
 empty :: Subst
 empty = Subst []
-
+ 
 single :: VarName -> Term -> Subst
 single a b | a `elem` (allVars b) = Subst []          -- verhindert {A->A}
            | otherwise            = Subst [(a, b)]
@@ -88,3 +87,8 @@ test1 :: String
 test1 = pretty (Subst [(VarName "D", Var (VarName "E")) , (VarName "F", Var (VarName "G")), (VarName "H", Var (VarName "I"))])
 test2 :: String
 test2 = pretty (single (VarName "F") (Comb "f" [Var (VarName "D"), Comb "true" []]))
+-- compose :: Subst -> Subst -> Subst
+-- compose (Subst []) (Subst []) = empty
+-- compose (Subst []) s          = s
+-- compose s          (Subst []) = s
+-- compose (Subst [x]) (Subst [y]) = apply 
