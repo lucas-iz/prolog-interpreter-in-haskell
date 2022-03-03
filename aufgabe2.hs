@@ -1,4 +1,4 @@
-module Aufgabe2 (Pretty) where
+module Aufgabe2 where
 import Type
 
 class Pretty a where

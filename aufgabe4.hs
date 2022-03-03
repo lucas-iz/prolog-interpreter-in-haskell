@@ -33,6 +33,12 @@ apply (Subst [(a,b)]) (Comb n list) = Comb n (map sub list)
       sub t = apply (Subst [(a,b)]) t
 apply (Subst (r:rs)) (Comb n list) = apply (Subst rs) (apply (Subst [r]) (Comb n list))
 
+-- 5. 
+-- compose :: Subst -> Subst -> Subst
+-- compose (Subst []) (Subst []) = empty
+-- compose (Subst []) s          = s
+-- compose s          (Subst []) = s
+-- compose (Subst [x]) (Subst [y]) = apply 
 
 -- 6. Implementieren Sie weiterhin eine Funktion restrictTo :: Subst -> [VarName] -> Subst,
 -- die eine Substitution bzw. deren Definitionsbereich auf eine gegebene Variablenmenge einschränkt.
@@ -42,17 +48,18 @@ restrictTo _ [] = empty
 restrictTo (Subst s) v = Subst (sub s v)
   where
     sub [] _ = []
-    sub (x:xs) v | hf (Subst [x]) v = [x] ++ sub xs v 
-                 | otherwise = sub xs v
+    sub (x:xs) t | hf (Subst [x]) t = [x] ++ sub xs t 
+                 | otherwise = sub xs t
                             
 -- Hilfsfunktion: überprüft, ob alle Variablen in der Domäne einer Substitution in einer gegebenen Liste an Variablennamen vorkommen
 hf :: Subst -> [VarName] -> Bool
 hf (Subst []) _ = True
 hf _ [] = False
-hf (Subst (s:ss)) v =  hhf (domain (Subst [s])) v 
+hf (Subst (s:_)) v =  hhf (domain (Subst [s])) v 
   where 
     hhf [] _ = True
-    hhf (d:dd) v = d `elem` v && hhf dd v
+    hhf (d:dd) t = d `elem` t && hhf dd t
+
 -- Testsubstitution für 7.
 test3 :: Subst
 test3 = restrictTo (Subst [(VarName "D", Var (VarName "E")) , (VarName "F", Var (VarName "G")), (VarName "H", Var (VarName "I"))]) [VarName "E", VarName "G", VarName "I"]
@@ -67,9 +74,7 @@ instance Pretty Subst where
   pretty (Subst ((VarName a,b) : cs)) = "{" ++ a ++ " -> " ++ pretty b ++  subPretty (Subst cs) ++ "}"
    where
      subPretty (Subst []) = ""
-     subPretty (Subst ((VarName a,b) : cs)) = ", " ++ a ++ " -> " ++ pretty b ++ subPretty (Subst cs)
-
-
+     subPretty (Subst ((VarName x,y) : zs)) = ", " ++ x ++ " -> " ++ pretty y ++ subPretty (Subst zs)
 
 instance Pretty Term where
   pretty (Var (VarName x)) = x
@@ -87,8 +92,11 @@ test1 :: String
 test1 = pretty (Subst [(VarName "D", Var (VarName "E")) , (VarName "F", Var (VarName "G")), (VarName "H", Var (VarName "I"))])
 test2 :: String
 test2 = pretty (single (VarName "F") (Comb "f" [Var (VarName "D"), Comb "true" []]))
--- compose :: Subst -> Subst -> Subst
--- compose (Subst []) (Subst []) = empty
--- compose (Subst []) s          = s
--- compose s          (Subst []) = s
--- compose (Subst [x]) (Subst [y]) = apply 
+
+
+-- 8.
+instance Vars Subst where
+   allVars (Subst []) = []
+   allVars (Subst ((a,b):xs)) = [a] ++ allVars b ++ allVars (Subst xs)
+
+-- instance Arbitrary Subst where
