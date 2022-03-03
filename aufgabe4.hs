@@ -7,13 +7,12 @@ data Subst = Subst [(VarName, Term)]
 
 -- Aufruf: domain(Subst (VarName "c", Comb "1" [Var (VarName "b"), Var (VarName "c")]))
 domain :: Subst -> [VarName]
---domain (Subst (a, b)) = filter (/= a) (allVars b)
 domain (Subst []) = []
 domain (Subst ((a, b) : rest)) = filter (/= a) (allVars b) ++ domain (Subst rest)
 
 empty :: Subst
 empty = Subst []
-
+ 
 single :: VarName -> Term -> Subst
 single a b | a `elem` (allVars b) = Subst []          -- verhindert {A->A}
            | otherwise            = Subst [(a, b)]
@@ -28,7 +27,9 @@ apply (Subst [(a,b)]) (Comb n list) = Comb n (map sub list)
    where 
       sub t = apply (Subst [(a,b)]) t
 apply (Subst (r:rs)) (Comb n list) = apply (Subst rs) (apply (Subst [r]) (Comb n list))
-  --y
- -- asdasda
 
- -- compose :: Subst -> Subst -> Subst
+-- compose :: Subst -> Subst -> Subst
+-- compose (Subst []) (Subst []) = empty
+-- compose (Subst []) s          = s
+-- compose s          (Subst []) = s
+-- compose (Subst [x]) (Subst [y]) = apply 
