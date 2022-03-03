@@ -30,3 +30,5 @@ apply (Subst [(a,b)]) (Comb n list) = Comb n (map sub list)
 apply (Subst (r:rs)) (Comb n list) = apply (Subst rs) (apply (Subst [r]) (Comb n list))
   --y
  -- asdasda
+
+ -- compose :: Subst -> Subst -> Subst
