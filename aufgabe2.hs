@@ -1,6 +1,5 @@
 module Aufgabe2 (Pretty) where
 import Type
-    ( Goal(..), Prog(..), Rule(..), Term(..), VarName(VarName) )
 
 class Pretty a where
   pretty :: a -> String
