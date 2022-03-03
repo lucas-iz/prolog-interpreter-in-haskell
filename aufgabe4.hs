@@ -1,26 +1,40 @@
 import Type
 import Aufgabe3
 
-data Subst = Single (VarName, Term) | Empty
+-- {A->B} // (a,b)
+data Subst = Subst [(VarName, Term)]
   deriving (Show)
 
--- {A->B} // (a,b)
-
+-- Aufruf: domain(Subst (VarName "c", Comb "1" [Var (VarName "b"), Var (VarName "c")]))
 domain :: Subst -> [VarName]
-domain Empty = []
-domain (Single (a, b)) = filter (/= a) (allVars b)
 
--- Aufruf: domain(Single (VarName "c", Comb "1" [Var (VarName "b"), Var (VarName "c")]))
+--domain (Subst (a, b)) = filter (/= a) (allVars b)
+domain (Subst []) = []
+domain (Subst ((a, b) : rest)) = filter (/= a) (allVars b) ++ domain (Subst rest)
+
 
 empty :: Subst
-empty = Empty
+empty = Subst []
 
 single :: VarName -> Term -> Subst
-single a b = Single (a, b)
+single a b | a `elem` (allVars b) = Subst []          -- verhindert {A->A}
+           | otherwise            = Subst [(a, b)]
 
--- apply :: Subst -> Term -> Term
--- apply Empty t = t
--- apply (Single (a,b)) t =
+
+apply :: Subst -> Term -> Term
+apply (Subst []) t = t
+apply (Subst [(a,b)]) (Var t) | a == t    = b
+                              | otherwise = Var t
+apply (Subst (r:rs)) (Var t)  = apply (Subst rs) (apply (Subst [r]) (Var t))
+-- apply (Subst [(a,b)]) (Comb n (t:ts)) = apply (Subst [(a,b)]) (Comb n (ersetze:ts))
+--    where 
+--       ersetze = apply (Subst [(a,b)]) t)                               
+
+
+-- apply (Subst [(VarName "I", Var (VarName "J")),(VarName "J", Var (VarName "H"))]) (Var (VarName "I"))
+
+-- apply (Subst (x:xs)) (Comb _ list) = ???
+
 
 -- Var VarName
 -- Comb CombName [Term]
