@@ -1,10 +1,12 @@
 import Type
 import Aufgabe3
+import Test.QuickCheck
+import Control.Monad
 
 -- 1. Definieren Sie einen Datentyp Subst zur Repräsentation von Substitutionen.
 -- {A->B} // (a,b)
 data Subst = Subst [(VarName, Term)]
-  deriving (Show)
+  deriving Show
 
 -- 2. Definieren Sie eine Funktion domain :: Subst -> [VarName], die den Definitionsbereich einer Substitution zurückgibt. 
 -- Mit dem Definitionsbereich einer Substitution sind dabei aus praktischen Gründen nur diejenigen Variablen gemeint, die nicht auf sich selbst abgebildet werden.
@@ -99,4 +101,17 @@ instance Vars Subst where
    allVars (Subst []) = []
    allVars (Subst ((a,b):xs)) = [a] ++ allVars b ++ allVars (Subst xs)
 
--- instance Arbitrary Subst where
+-- 9.
+instance Arbitrary Subst where
+   arbitrary = do
+      arity <- choose (0, 2)
+      frequency [ (2, Subst <$> replicateM arity arbitrary) ]
+
+-- 10.
+prop_applyEmpty :: Term -> Bool
+prop_applyEmpty t = apply empty t == t
+
+prop_applySingle :: VarName -> Term -> Bool
+prop_applySingle x t = apply (single x t) (Var x) == t
+
+
