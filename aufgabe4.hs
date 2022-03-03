@@ -28,4 +28,5 @@ apply (Subst [(a,b)]) (Comb n list) = Comb n (map sub list)
    where 
       sub t = apply (Subst [(a,b)]) t
 apply (Subst (r:rs)) (Comb n list) = apply (Subst rs) (apply (Subst [r]) (Comb n list))
-  
+  --y
+ -- asdasda
