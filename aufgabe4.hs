@@ -141,4 +141,20 @@ prop_allVarsEmpty = allVars empty == []
 
 prop_allVarsSingle :: VarName -> Bool 
 prop_allVarsSingle x = allVars (single x (Var x)) == []
+ 
+prop_allVarsSingle2 :: VarName -> Term -> Property
+prop_allVarsSingle2 x t = t /= Var x ==> allVars (single x t) == allVars t ++ [x] 
+                                      || allVars (single x t) == [x] ++ allVars t
 
+prop_restrictEmpty :: [VarName] -> Bool 
+prop_restrictEmpty xs = domain (restrictTo empty xs) == []
+
+prop_restrictTo :: Subst -> [VarName] -> Bool 
+prop_restrictTo s xs = subProp (restrictTo s xs) xs 
+
+subProp :: Subst -> [VarName] -> Bool 
+subProp (Subst []) _ = True
+subProp (Subst s) xs = helfer (domain (Subst s))
+   where
+      helfer [] = True 
+      helfer (d:ds) = d `elem` xs && helfer ds
