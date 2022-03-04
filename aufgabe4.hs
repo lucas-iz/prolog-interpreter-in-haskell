@@ -13,9 +13,8 @@ data Subst = Subst [(VarName, Term)]
 -- Aufruf: domain(Subst (VarName "c", Comb "1" [Var (VarName "b"), Var (VarName "c")]))
 domain :: Subst -> [VarName]
 domain (Subst []) = []
--- domain (Subst ((a, b) : rest)) = filter (/= a) (allVars b) ++ domain (Subst rest)
 domain (Subst ((a,b) : rest))
-                     | Var a == b = domain (Subst rest)
+                     | Var a == b = domain (Subst rest)     -- verhindert {A->A}
                      | otherwise = a : domain (Subst rest)
 
 -- 3. Definieren Sie dann zwei Funktionen empty :: Subst und single :: VarName -> Term -> Subst zum Erstellen einer leeren Substitution bzw. einer Substitution,
@@ -25,8 +24,6 @@ empty = Subst []
 
 single :: VarName -> Term -> Subst
 single a b = Subst [(a,b)]
--- single a b | a `elem` allVars b = Subst []          -- verhindert {A->A}
---            | otherwise            = Subst [(a, b)]
 
 -- 4. Implementieren Sie eine Funktion apply :: Subst -> Term -> Term, die eine Substitution auf einen Term anwendet.
 apply :: Subst -> Term -> Term
@@ -54,7 +51,7 @@ restrictTo _ [] = empty
 restrictTo (Subst s) v = Subst (sub s v)
   where
     sub [] _ = []
-    sub (x:xs) t | hf (Subst [x]) t = [x] ++ sub xs t
+    sub (x:xs) t | hf (Subst [x]) t = x : sub xs t
                  | otherwise = sub xs t
 
 -- Hilfsfunktion: überprüft, ob alle Variablen in der Domäne einer Substitution in einer gegebenen Liste an Variablennamen vorkommen
@@ -68,7 +65,7 @@ hf (Subst (s:_)) v =  hhf (domain (Subst [s])) v
 
 -- Testsubstitution für 7.
 test3 :: Subst
-test3 = restrictTo (Subst [(VarName "D", Var (VarName "E")) , (VarName "F", Var (VarName "G")), (VarName "H", Var (VarName "I"))]) [VarName "E", VarName "G", VarName "I"]
+test3 = restrictTo (Subst [(VarName "D", Var (VarName "E")) , (VarName "F", Var (VarName "G")), (VarName "H", Var (VarName "I"))]) [VarName "D", VarName "F", VarName "H"]
 
 -- 7. pretty (!! Bekommen Pretty nicht aus Aufgabe 2 exportiert, daher copy and paste für class Pretty und der Pretty Instanz für Term) 
 class Pretty a where
@@ -100,7 +97,7 @@ test2 :: String
 test2 = pretty (single (VarName "F") (Comb "f" [Var (VarName "D"), Comb "true" []]))
 
 
--- 8.
+-- 8. Instanz für Vars / allVars
 instance Vars Subst where
    allVars (Subst []) = []
    --allVars (Subst ((a,b):xs)) = [a] ++ allVars b ++ allVars (Subst xs)
@@ -108,13 +105,13 @@ instance Vars Subst where
                      | Var a == b = allVars (Subst xs)
                      | otherwise = [a] ++ allVars b ++ allVars (Subst xs)
 
--- 9.
+-- 9. Instanz für das Testen der Eigenschaften
 instance Arbitrary Subst where
    arbitrary = do
       arity <- choose (0, 2)
       frequency [ (2, Subst <$> replicateM arity arbitrary) ]
 
--- 10.
+-- 10. Funktionen zum Testen der Eigenschaften
 prop_applyEmpty :: Term -> Bool
 prop_applyEmpty t = apply empty t == t
 
