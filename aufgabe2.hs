@@ -1,5 +1,10 @@
 module Aufgabe2 where
 import Type
+import Data.List
+
+-- mapPretty :: [a] -> a -> [a]
+-- mapPretty [] _ = []
+-- mapPretty xs c = intersperse c xs
 
 class Pretty a where
   pretty :: a -> String
