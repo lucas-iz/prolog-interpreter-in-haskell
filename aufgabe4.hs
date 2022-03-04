@@ -3,7 +3,6 @@ import Type
 import Aufgabe3
 import Test.QuickCheck
 import Control.Monad
-import Main (Subst(Subst))
 
 -- 1. Definieren Sie einen Datentyp Subst zur Repräsentation von Substitutionen.
 -- {A->B} // (a,b)
