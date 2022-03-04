@@ -26,12 +26,10 @@ instance Vars Goal where
   allVars (Goal []) = []
   allVars (Goal (t : ts)) = nubV (allVars t ++ allVars (Goal ts))
 
--- Remove all duplicates in a list of integers.
+-- Remove all duplicates in a list of VarNames.
 nubV :: [VarName] -> [VarName]
 nubV []     = []
 nubV (x:xs) = x : nubV (filter (/=x) xs)
-
-
 
 -- gives an infinite list of valid variable names
 freshVars :: [VarName]
