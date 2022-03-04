@@ -3,6 +3,7 @@ import Type
 import Aufgabe3
 import Test.QuickCheck
 import Control.Monad
+import Main (Subst(Subst))
 
 -- 1. Definieren Sie einen Datentyp Subst zur Repräsentation von Substitutionen.
 -- {A->B} // (a,b)
@@ -38,11 +39,15 @@ apply (Subst [(a,b)]) (Comb n list) = Comb n (map sub list)
 apply (Subst (r:rs)) (Comb n list) = apply (Subst rs) (apply (Subst [r]) (Comb n list))
 
 -- 5. 
-compose :: Subst -> Subst -> Subst
-compose (Subst []) (Subst []) = empty
-compose (Subst []) s          = s
-compose s          (Subst []) = s
-compose (Subst [(a,b)]) (Subst [(c,d)]) = Subst [(c,apply (Subst [(a,b)]) d)]
+-- compose :: Subst -> Subst -> Subst
+-- compose (Subst []) (Subst []) = empty
+-- compose (Subst []) s          = s
+-- compose s          (Subst []) = s
+-- compose (Subst [(a,b)]) (Subst [(c,d)]) = Subst [(c,apply (Subst [(a,b)]) d)]
+
+-- without :: Subst -> Subst -> Subst
+-- without Subst xs Subst (y:ys) | y `elem` xs = without (Subst xs) (Subst drop 1 (y:ys))
+--                               | otherwise = 
 
 -- 6. Implementieren Sie weiterhin eine Funktion restrictTo :: Subst -> [VarName] -> Subst,
 -- die eine Substitution bzw. deren Definitionsbereich auf eine gegebene Variablenmenge einschränkt.
