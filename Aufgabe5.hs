@@ -37,5 +37,32 @@ ds (Var a) (Var b) | a == b = Nothing                       -- Fall 3: Beide Ter
 
 
          
+t1 :: Term
+t1 = Comb "f" [
+      Var (VarName "A"), 
+      Comb "g" [
+         Comb "s" [
+            Var (VarName "U")
+         ],
+         Comb "t" [
+            Var (VarName "V")
+         ]
+      ]
+   ]
+
+t2 :: Term
+t2 = Comb "f" [
+      Var (VarName "A"), 
+      Comb "g" [
+         Comb "s" [
+            Var (VarName "U")
+         ],
+         Comb "t" [
+            Var (VarName "V")
+         ]
+      ]
+   ]
+
+
 
 
