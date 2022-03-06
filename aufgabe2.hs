@@ -5,6 +5,8 @@ import Data.List
 class Pretty a where
   pretty :: a -> String
 
+-- Changes complete. 
+-- Replace seperate rules with 'intercalate' and 'map'
 instance Pretty Term where
   pretty (Var (VarName x)) = x
   pretty (Comb x []) = x
