@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 import Type
 import Aufgabe3
 import Test.QuickCheck
