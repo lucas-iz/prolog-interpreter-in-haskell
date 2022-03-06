@@ -3,6 +3,7 @@ import Aufgabe3
 import Test.QuickCheck
 import Control.Monad
 import Aufgabe2
+import qualified GHC.Generics as Startbereiche
 
 -- 1. Definieren Sie einen Datentyp Subst zur Repräsentation von Substitutionen.
 -- {A->B} // (a,b)
@@ -111,9 +112,13 @@ instance Vars Subst where
 
 -- 9. Instanz für das Testen der Eigenschaften
 instance Arbitrary Subst where
+   -- arbitrary = do
+   --    arity <- choose (0, 2)
+   --    frequency [ (2, Subst <$> replicateM arity arbitrary) ]
+   -- TODO: Keine Doppelten Startbereiche.
    arbitrary = do
-      arity <- choose (0, 2)
-      frequency [ (2, Subst <$> replicateM arity arbitrary) ]
+      arity <- choose (0,4)
+      Subst <$> replicateM arity arbitrary
 
 -- 10. Funktionen zum Testen der Eigenschaften
 prop_applyEmpty :: Term -> Bool
