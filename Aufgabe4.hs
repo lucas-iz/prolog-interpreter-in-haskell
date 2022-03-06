@@ -1,8 +1,11 @@
+
+{-# LANGUAGE TemplateHaskell #-}
 import Type
 import Aufgabe3
 import Test.QuickCheck
 import Control.Monad
 import Aufgabe2
+import qualified GHC.Generics as Startbereiche
 
 -- 1. Definieren Sie einen Datentyp Subst zur Repräsentation von Substitutionen.
 -- {A->B} // (a,b)
@@ -111,9 +114,17 @@ instance Vars Subst where
 
 -- 9. Instanz für das Testen der Eigenschaften
 instance Arbitrary Subst where
+   -- TODO: Keine Doppelten Startbereiche.
    arbitrary = do
-      arity <- choose (0, 2)
-      frequency [ (2, Subst <$> replicateM arity arbitrary) ]
+      arity <- choose (0,4)
+      Subst <$> replicateM arity arbitrary
+
+-- makeArbitraries :: Arbitrary a => Int -> Gen [(VarName,Term)]
+-- makeArbitraries n | n <= 0    = return []
+--                   | otherwise = do a <- VarName arbitrary
+--                                    b <- arbitrary
+--                                    xs <- makeArbitraries (n - 1)
+--                                    return ((a,b):xs)
 
 -- 10. Funktionen zum Testen der Eigenschaften
 prop_applyEmpty :: Term -> Bool
@@ -175,3 +186,7 @@ subProp (Subst s) xs = helfer (domain (Subst s))
    where
       helfer [] = True
       helfer (d:ds) = d `elem` xs && helfer ds
+
+-- For testing all tests.
+return []
+runTests = $quickCheckAll
