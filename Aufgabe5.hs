@@ -28,11 +28,11 @@ ds (Comb f a) (Comb g b) | f /= g || length a /= length b = Just (Comb f a, Comb
 
 
 
-ds (Comb _ []) _ = Nothing                                  -- Fall 1: Der erste Term besitzt keine Variablen -> keine Unstimmigkeitsmenge
-ds _ (Comb _ []) = Nothing                                  -- Fall 2: Der zweite Term besitzt keine Variablen -> keine Unstimmigkeitsmenge
+-- ds (Comb _ []) _ = Nothing                                  -- Fall 1: Der erste Term besitzt keine Variablen -> keine Unstimmigkeitsmenge
+-- ds _ (Comb _ []) = Nothing                                  -- Fall 2: Der zweite Term besitzt keine Variablen -> keine Unstimmigkeitsmenge
 
-ds (Var a) (Var b) | a == b = Nothing                       -- Fall 3: Beide Terme bestehen aus einer Variablen und die sind gleich -> keine Unstimmigkeitsmenge
-                   | otherwise = Just (Var a,Var b)         -- Fall 4:                                          und die sind nicht gleich -> Unstimmigkeitsmenge (a,b)
+-- ds (Var a) (Var b) | a == b = Nothing                       -- Fall 3: Beide Terme bestehen aus einer Variablen und die sind gleich -> keine Unstimmigkeitsmenge
+--                    | otherwise = Just (Var a,Var b)         -- Fall 4:                                          und die sind nicht gleich -> Unstimmigkeitsmenge (a,b)
 
 
 
@@ -58,7 +58,7 @@ t2 = Comb "f" [
             Var (VarName "U")
          ],
          Comb "t" [
-            Var (VarName "V")
+            Var (VarName "Z")
          ]
       ]
    ]
