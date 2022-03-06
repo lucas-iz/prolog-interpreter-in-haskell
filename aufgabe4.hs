@@ -3,6 +3,7 @@ import Type
 import Aufgabe3
 import Test.QuickCheck
 import Control.Monad
+import Aufgabe2
 
 -- 1. Definieren Sie einen Datentyp Subst zur Repräsentation von Substitutionen.
 -- {A->B} // (a,b)
@@ -27,15 +28,13 @@ single :: VarName -> Term -> Subst
 single a b = Subst [(a,b)]
 
 -- 4. Implementieren Sie eine Funktion apply :: Subst -> Term -> Term, die eine Substitution auf einen Term anwendet.
+-- Complete change (Es wird nun gleichzeitig substituiert (A -> B, B -> C ergibt nicht mehr A -> C))
 apply :: Subst -> Term -> Term
 apply (Subst []) t = t
-apply (Subst [(a,b)]) (Var t) | a == t    = b
-                              | otherwise = Var t
-apply (Subst (r:rs)) (Var t)  = apply (Subst rs) (apply (Subst [r]) (Var t))
-apply (Subst [(a,b)]) (Comb n list) = Comb n (map sub list)
-   where
-      sub t = apply (Subst [(a,b)]) t
-apply (Subst (r:rs)) (Comb n list) = apply (Subst rs) (apply (Subst [r]) (Comb n list))
+apply (Subst ((a,b) : cs)) (Var t) | a == t = b
+                                   | otherwise = apply (Subst cs) (Var t)
+apply (Subst s) (Comb f t) = Comb f (map (apply (Subst s)) t)
+
 
 -- 5. 
 -- compose :: Subst -> Subst -> Subst
@@ -73,26 +72,26 @@ test3 :: Subst
 test3 = restrictTo (Subst [(VarName "D", Var (VarName "E")) , (VarName "F", Var (VarName "G")), (VarName "H", Var (VarName "I"))]) [VarName "D", VarName "F", VarName "H"]
 
 -- 7. pretty (!! Bekommen Pretty nicht aus Aufgabe 2 exportiert, daher copy and paste für class Pretty und der Pretty Instanz für Term) 
-class Pretty a where
-  pretty :: a -> String
+--class Pretty a where
+  --pretty :: a -> String
 
 instance Pretty Subst where
   pretty (Subst []) = "{}"
   pretty (Subst [(VarName a,b)]) | domain(Subst [(VarName a,b)]) == [] = "{}"
-                                 | otherwise = "{" ++ a ++ " -> " ++ pretty b ++ "}"                                 
+                                 | otherwise = "{" ++ a ++ " -> " ++ pretty b ++ "}"
   pretty (Subst ((VarName a,b) : cs)) = "{" ++ a ++ " -> " ++ pretty b ++  subPretty (Subst cs) ++ "}"
    where
      subPretty (Subst []) = ""
      subPretty (Subst ((VarName x,y) : zs)) = ", " ++ x ++ " -> " ++ pretty y ++ subPretty (Subst zs)
 
-instance Pretty Term where
-  pretty (Var (VarName x)) = x
-  pretty (Comb x []) = x
-  pretty (Comb x xs) = x ++ "(" ++ subPretty xs ++ ")"
-    where
-      subPretty [y] = pretty y
-      subPretty (y : ys) = pretty y ++ ", " ++ subPretty ys
-      subPretty [] = []
+--instance Pretty Term where
+  --pretty (Var (VarName x)) = x
+  --pretty (Comb x []) = x
+  --pretty (Comb x xs) = x ++ "(" ++ subPretty xs ++ ")"
+    --where
+      --subPretty [y] = pretty y
+      --subPretty (y : ys) = pretty y ++ ", " ++ subPretty ys
+      --subPretty [] = []
 
 --Tests für Pretty
 test :: String
@@ -144,9 +143,9 @@ prop_allVarsEmpty = allVars empty == []
 
 prop_allVarsSingle :: VarName -> Bool
 prop_allVarsSingle x = allVars (single x (Var x)) == []
- 
+
 prop_allVarsSingle2 :: VarName -> Term -> Property
-prop_allVarsSingle2 x t = t /= Var x ==> allVars (single x t) == allVars t ++ [x] 
+prop_allVarsSingle2 x t = t /= Var x ==> allVars (single x t) == allVars t ++ [x]
                                       || allVars (single x t) == [x] ++ allVars t
 
 -- prop_allVarsCompose
@@ -155,7 +154,7 @@ prop_allVarsSingle2 x t = t /= Var x ==> allVars (single x t) == allVars t ++ [x
 
 prop_domainAllVars :: Subst -> Bool
 prop_domainAllVars s = testF s
-                      
+
 -- Testfunktion für prop_domainAllVars
 testF :: Subst -> Bool
 testF (Subst []) = True
@@ -164,16 +163,16 @@ testF (Subst s) = hilfF (domain (Subst s))
     hilfF [] = True
     hilfF (d : ds) = d `elem` allVars (Subst s) && hilfF ds
 
-prop_restrictEmpty :: [VarName] -> Bool 
+prop_restrictEmpty :: [VarName] -> Bool
 prop_restrictEmpty xs = domain (restrictTo empty xs) == []
 
-prop_restrictTo :: Subst -> [VarName] -> Bool 
-prop_restrictTo s xs = subProp (restrictTo s xs) xs 
+prop_restrictTo :: Subst -> [VarName] -> Bool
+prop_restrictTo s xs = subProp (restrictTo s xs) xs
 
 -- Testfunktion für prop_restrictTo
-subProp :: Subst -> [VarName] -> Bool 
+subProp :: Subst -> [VarName] -> Bool
 subProp (Subst []) _ = True
 subProp (Subst s) xs = helfer (domain (Subst s))
    where
-      helfer [] = True 
+      helfer [] = True
       helfer (d:ds) = d `elem` xs && helfer ds
