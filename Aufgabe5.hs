@@ -13,6 +13,13 @@ ds (Comb f a) (Comb g b) | f /= g || length a /= length b = Just (Comb f a, Comb
                          | otherwise = ds (fst (head (filter (\(x,y) -> x /= y) (zip a b))))
                                           (snd (head (filter (\(x,y) -> x /= y) (zip a b))))
 
+
+-- unify :: Term -> Term -> Maybe Subst
+-- unify t1 t2 | ds t1 t2 == Nothing = 
+
+
+
+
 -- Testfälle      
 t1 :: Term
 t1 = Comb "f" [
