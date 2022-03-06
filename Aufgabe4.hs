@@ -1,5 +1,5 @@
-
 {-# LANGUAGE TemplateHaskell #-}
+module Aufgabe4 where
 import Type
 import Aufgabe3
 import Test.QuickCheck
