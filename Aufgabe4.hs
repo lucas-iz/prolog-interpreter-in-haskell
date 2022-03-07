@@ -5,7 +5,6 @@ import Aufgabe3
 import Test.QuickCheck
 import Control.Monad
 import Aufgabe2
-import qualified GHC.Generics as Startbereiche
 
 -- 1. Definieren Sie einen Datentyp Subst zur Repräsentation von Substitutionen.
 -- {A->B} // (a,b)
@@ -189,4 +188,5 @@ subProp (Subst s) xs = helfer (domain (Subst s))
 
 -- For testing all tests.
 return []
+runTests :: IO Bool
 runTests = $quickCheckAll
