@@ -5,11 +5,9 @@ import Aufgabe2
 import Aufgabe3
 import Test.QuickCheck
 import Control.Monad
--- import Data.List
-
 
 -- 1. Definieren Sie einen Datentyp Subst zur Repräsentation von Substitutionen.
--- {A->B} // (a,b)
+-- {A->B} // [(a,b)]
 data Subst = Subst [(VarName, Term)]
   deriving Show
 
@@ -38,7 +36,6 @@ apply (Subst ((a,b) : cs)) (Var t) | a == t = b
                                    | otherwise = apply (Subst cs) (Var t)
 apply (Subst s) (Comb f t) = Comb f (map (apply (Subst s)) t)
 
-
 -- 5. 
 compose :: Subst -> Subst -> Subst
 compose (Subst []) (Subst []) = empty
@@ -66,12 +63,7 @@ hf (Subst (s:_)) v =  hhf (domain (Subst [s])) v
     hhf [] _ = True
     hhf (d:dd) t = d `elem` t && hhf dd t
 
--- Testsubstitution für 7.
-test3 :: Subst
-test3 = restrictTo (Subst [(VarName "D", Var (VarName "E")) , (VarName "F", Var (VarName "G")), (VarName "H", Var (VarName "I"))]) [VarName "D", VarName "F", VarName "H"]
-
 -- 7. pretty 
-
 instance Pretty Subst where
   pretty (Subst []) = "{}"
   pretty (Subst [(VarName a,b)]) | domain(Subst [(VarName a,b)]) == [] = "{}"
@@ -83,33 +75,17 @@ instance Pretty Subst where
       subPretty [(VarName a,b)]    = a ++ " -> " ++ pretty b
       subPretty ((VarName a,b):cs) = a ++ " -> " ++ pretty b ++ ", " ++ subPretty cs
 
---Tests für Pretty
-aa :: String
-aa = "A"
-bb :: Term
-bb = Var (VarName "A")
-test :: Bool
-test = Var (VarName aa) == bb
-test1 :: String
-test1 = pretty (Subst [(VarName "A", Var (VarName "A")) , (VarName "F", Var (VarName "F")), (VarName "H", Var (VarName "I"))])
-test2 :: String
-test2 = pretty (single (VarName "F") (Comb "f" [Var (VarName "D"), Comb "true" []]))
-
-
 -- 8. Instanz für Vars / allVars
 instance Vars Subst where
    allVars (Subst []) = []
-   --allVars (Subst ((a,b):xs)) = [a] ++ allVars b ++ allVars (Subst xs)
    allVars (Subst ((a,b):xs))
                      | Var a == b = allVars (Subst xs)
                      | otherwise = [a] ++ allVars b ++ allVars (Subst xs)
 
 -- 9. Instanz für das Testen der Eigenschaften
 instance Arbitrary Subst where
-   -- TODO: Keine Doppelten Startbereiche.
    arbitrary = do
       arity <- choose (0,4)
-      -- Subst <$> replicateM arity arbitrary
       Subst <$> (replicateM arity arbitrary `suchThat` hasNoDuplicates)
 
 -- Returns True if the given list has no duplicate VarName.
