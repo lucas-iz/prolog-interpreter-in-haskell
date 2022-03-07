@@ -1,10 +1,12 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 module Aufgabe4 where
 import Type
 import Aufgabe3
 import Test.QuickCheck
 import Control.Monad
 import Aufgabe2
+import Data.List
 
 -- 1. Definieren Sie einen Datentyp Subst zur Repräsentation von Substitutionen.
 -- {A->B} // (a,b)
@@ -38,15 +40,47 @@ apply (Subst s) (Comb f t) = Comb f (map (apply (Subst s)) t)
 
 
 -- 5. 
--- compose :: Subst -> Subst -> Subst
--- compose (Subst []) (Subst []) = empty
--- compose (Subst []) s          = s
--- compose s          (Subst []) = s
--- compose (Subst [(a,b)]) (Subst [(c,d)]) = Subst [(c,apply (Subst [(a,b)]) d)]
+compose :: Subst -> Subst -> Subst
+compose (Subst []) (Subst []) = empty
+compose (Subst []) s          = s
+compose s          (Subst []) = s
+compose (Subst [(a,b)]) (Subst [(c,Var d)]) | a == c     = Subst [(c,Var d)]
+                                            | a == d     = Subst [(c,b),(a,b)]
+                                            | otherwise  = Subst [(c,Var d),(a,b)]
+compose (Subst [(a,b)]) (Subst [(c,Comb f d)]) | a == c     = Subst [(c,Comb f d)]
+                                               | otherwise  = Subst [(c,Comb f (repl d)),(a,b)]
+   where
+      repl [] = []
+      repl t = map (apply (Subst [(a,b)])) t
+compose (Subst a) (Subst [b]) = Subst (nub (concatMap (`unter` b) a))
+-- compose (Subst a) (Subst (_:bs)) = compose (Subst a) (Subst bs)
+compose (Subst (a:as)) (Subst (b:bs)) = combine (Subst (nub (concatMap (`unter` b) (a:as)))) (compose (Subst as) (Subst bs))
 
--- without :: Subst -> Subst -> Subst
--- without Subst xs Subst (y:ys) | y `elem` xs = without (Subst xs) (Subst drop 1 (y:ys))
---                               | otherwise = 
+unter :: (VarName, Term) -> (VarName, Term) -> [(VarName, Term)]
+unter (a,b) (c,d) = get (compose (Subst [(a,b)]) (Subst [(c,d)]))
+
+get :: Subst -> [(VarName,Term)]
+get (Subst s) = s
+
+combine :: Subst -> Subst -> Subst
+combine (Subst []) (Subst []) = Subst []
+combine (Subst []) s = s
+combine s (Subst []) = s
+combine (Subst a) (Subst b) = Subst (nub (a++b))
+
+-- Testfälle für compose
+sub1 :: Subst
+sub1 = Subst [(VarName "D", Var (VarName "E"))]
+sub2 :: Subst
+sub2 = Subst [(VarName "F",Comb "f" [Var (VarName "D"),Comb "true" []])]
+sub3 :: Subst
+sub3 = Subst [(VarName "A", Var (VarName "B")), (VarName "C", Var (VarName "T"))]
+sub4 :: Subst
+sub4 = Subst [(VarName "E", Var (VarName "C")), (VarName "C", Var (VarName "S"))]
+sub5 :: Subst
+sub5 = Subst [(VarName "A", Var (VarName "S"))]
+ter1 :: Term
+ter1 = Comb "f" [Var (VarName "A"),Var (VarName "E"),Var (VarName "C")]
 
 -- 6. Implementieren Sie weiterhin eine Funktion restrictTo :: Subst -> [VarName] -> Subst,
 -- die eine Substitution bzw. deren Definitionsbereich auf eine gegebene Variablenmenge einschränkt.
@@ -72,9 +106,7 @@ hf (Subst (s:_)) v =  hhf (domain (Subst [s])) v
 test3 :: Subst
 test3 = restrictTo (Subst [(VarName "D", Var (VarName "E")) , (VarName "F", Var (VarName "G")), (VarName "H", Var (VarName "I"))]) [VarName "D", VarName "F", VarName "H"]
 
--- 7. pretty (!! Bekommen Pretty nicht aus Aufgabe 2 exportiert, daher copy and paste für class Pretty und der Pretty Instanz für Term) 
---class Pretty a where
-  --pretty :: a -> String
+-- 7. pretty 
 
 instance Pretty Subst where
   pretty (Subst []) = "{}"
@@ -84,15 +116,6 @@ instance Pretty Subst where
    where
      subPretty (Subst []) = ""
      subPretty (Subst ((VarName x,y) : zs)) = ", " ++ x ++ " -> " ++ pretty y ++ subPretty (Subst zs)
-
---instance Pretty Term where
-  --pretty (Var (VarName x)) = x
-  --pretty (Comb x []) = x
-  --pretty (Comb x xs) = x ++ "(" ++ subPretty xs ++ ")"
-    --where
-      --subPretty [y] = pretty y
-      --subPretty (y : ys) = pretty y ++ ", " ++ subPretty ys
-      --subPretty [] = []
 
 --Tests für Pretty
 test :: String
@@ -133,6 +156,8 @@ prop_applySingle :: VarName -> Term -> Bool
 prop_applySingle x t = apply (single x t) (Var x) == t
 
 -- prop_applyCompose
+prop_applyCompose :: Subst -> Subst -> Term -> Bool 
+prop_applyCompose s1 s2 t = apply (compose s1 s2) t == apply s1 (apply s2 t)
 
 prop_domainEmpty :: Bool
 prop_domainEmpty = domain empty == []
