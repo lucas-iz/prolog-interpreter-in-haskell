@@ -6,6 +6,7 @@ import Aufgabe2
 import Aufgabe3
 import Test.QuickCheck
 import Control.Monad
+-- import Data.List
 
 
 -- 1. Definieren Sie einen Datentyp Subst zur Repräsentation von Substitutionen.
@@ -109,8 +110,18 @@ instance Arbitrary Subst where
    -- TODO: Keine Doppelten Startbereiche.
    arbitrary = do
       arity <- choose (0,4)
-      Subst <$> replicateM arity arbitrary
-      
+      -- Subst <$> replicateM arity arbitrary
+      Subst <$> (replicateM arity arbitrary `suchThat` hasNoDuplicates)
+
+-- Returns True if the given list has no duplicate VarName.
+hasNoDuplicates :: [(VarName, Term)] -> Bool
+hasNoDuplicates [] = True 
+hasNoDuplicates xs = sub xs []
+   where
+        sub [] _               = True
+        sub ((a,_):cs) visited | a `elem` visited = False
+                               | otherwise        = sub cs (a:visited)
+
 -- 10. Funktionen zum Testen der Eigenschaften
 prop_applyEmpty :: Term -> Bool
 prop_applyEmpty t = apply empty t == t
@@ -118,7 +129,6 @@ prop_applyEmpty t = apply empty t == t
 prop_applySingle :: VarName -> Term -> Bool
 prop_applySingle x t = apply (single x t) (Var x) == t
 
--- prop_applyCompose
 prop_applyCompose :: Subst -> Subst -> Term -> Bool 
 prop_applyCompose s1 s2 t = apply (compose s1 s2) t == apply s1 (apply s2 t)
 
@@ -131,7 +141,8 @@ prop_domainSingle x = domain (single x (Var x)) == []
 prop_domainSingle2 :: VarName -> Term -> Property
 prop_domainSingle2 x t = t /= Var x ==> domain (single x t) == [x]
 
--- prop_domainCompose
+-- prop_domainCompose :: Subst -> Subst -> Bool 
+-- prop_domainCompose s1 s2 = domain(compose(𝑠1,𝑠2)) ⊆ domain(𝑠1) ∪ domain(𝑠2)
 
 -- prop_domainCompose2
 
