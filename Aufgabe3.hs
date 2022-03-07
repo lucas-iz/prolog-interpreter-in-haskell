@@ -24,11 +24,11 @@ instance Vars Goal where
   allVars (Goal []) = []
   allVars (Goal (t : ts)) = nub (allVars t ++ allVars (Goal ts))
 
-
-
-
 -- gives an infinite list of valid variable names
 -- change complete (using map)
 freshVars :: [VarName]
-freshVars = map (\x -> VarName [x]) ['A' .. 'Z'] ++ map (\(x,y) -> VarName (y : show x)) ([(a, b) | a <- [0 ..], b <- ['A' .. 'Z']])
+freshVars = map (\x -> VarName [x]) ['A' .. 'Z'] ++ map toVarName ([(a, b) | b <- [0 ..], a <- ['A' .. 'Z']])
+-- freshVars = map (\x -> VarName [x]) ['A' .. 'Z'] ++ map (\(s,t) -> VarName (s : show t)) ([(a, b) | a <- [0 ..], b <- ['A' .. 'Z']])
 
+toVarName :: (Char, Int) -> VarName
+toVarName (a,b) = VarName (a : show b)
