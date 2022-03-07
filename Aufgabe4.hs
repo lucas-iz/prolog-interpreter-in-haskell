@@ -2,11 +2,11 @@
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 module Aufgabe4 where
 import Type
+import Aufgabe2
 import Aufgabe3
 import Test.QuickCheck
 import Control.Monad
-import Aufgabe2
-import Data.List
+
 
 -- 1. Definieren Sie einen Datentyp Subst zur Repräsentation von Substitutionen.
 -- {A->B} // (a,b)
@@ -44,49 +44,7 @@ compose :: Subst -> Subst -> Subst
 compose (Subst []) (Subst []) = empty
 compose (Subst []) s          = s
 compose s          (Subst []) = s
-compose (Subst [(a,b)]) (Subst [(c,Var d)]) | a == c     = Subst [(c,Var d)]
-                                            | a == d     = Subst [(c,b),(a,b)]
-                                            | otherwise  = Subst [(c,Var d),(a,b)]
-compose (Subst [(a,b)]) (Subst [(c,Comb f d)]) | a == c     = Subst [(c,Comb f d)]
-                                               | otherwise  = Subst [(c,Comb f (repl d)),(a,b)]
-   where
-      repl [] = []
-      repl t = map (apply (Subst [(a,b)])) t
-compose (Subst (a:as)) (Subst (b:bs)) = combine (Subst (a:as)) (Subst (b:bs))
-
--- compose (Subst (a:as)) (Subst (b:bs)) = combine (Subst (nub (concatMap (`unter` b) (a:as)))) (compose (Subst as) (Subst bs))
--- unter :: (VarName, Term) -> (VarName, Term) -> [(VarName, Term)]
--- unter (a,b) (c,d) = get (compose (Subst [(a,b)]) (Subst [(c,d)]))
--- get :: Subst -> [(VarName,Term)]
--- get (Subst s) = s
-combine :: Subst -> Subst -> Subst
-combine (Subst []) (Subst []) = Subst []
-combine (Subst []) s = s
-combine s (Subst []) = s
-combine (Subst a) (Subst b) = Subst (nub (a++b))
-
--- Testfälle für compose
-my1 :: Subst
-my1 = Subst [(VarName "A", Var (VarName "B"))]
-my2 :: Subst
-my2 = Subst [(VarName "C", Var (VarName "T"))]
-my3 :: Subst
-my3 = Subst [(VarName "C", Var (VarName "S"))]
-my4 :: Subst
-my4 = Subst [(VarName "E", Var (VarName "C"))]
-
-sub1 :: Subst
-sub1 = Subst [(VarName "D", Var (VarName "E"))]
-sub2 :: Subst
-sub2 = Subst [(VarName "F",Comb "f" [Var (VarName "D"),Comb "true" []])]
-sub3 :: Subst
-sub3 = Subst [(VarName "A", Var (VarName "B")), (VarName "C", Var (VarName "T"))]
-sub4 :: Subst
-sub4 = Subst [(VarName "E", Var (VarName "C")), (VarName "C", Var (VarName "S"))]
-sub5 :: Subst
-sub5 = Subst [(VarName "A", Var (VarName "S"))]
-ter1 :: Term
-ter1 = Comb "f" [Var (VarName "A"),Var (VarName "E"),Var (VarName "C")]
+compose (Subst (a:as)) (Subst (b:bs)) = Subst (map (\(r,s) -> (r, apply (Subst (a:as)) s)) (b:bs) ++ filter (\(x,_) -> x `notElem` domain (Subst (b:bs))) (a:as))
 
 -- 6. Implementieren Sie weiterhin eine Funktion restrictTo :: Subst -> [VarName] -> Subst,
 -- die eine Substitution bzw. deren Definitionsbereich auf eine gegebene Variablenmenge einschränkt.
@@ -152,14 +110,7 @@ instance Arbitrary Subst where
    arbitrary = do
       arity <- choose (0,4)
       Subst <$> replicateM arity arbitrary
-
--- makeArbitraries :: Arbitrary a => Int -> Gen [(VarName,Term)]
--- makeArbitraries n | n <= 0    = return []
---                   | otherwise = do a <- VarName arbitrary
---                                    b <- arbitrary
---                                    xs <- makeArbitraries (n - 1)
---                                    return ((a,b):xs)
-
+      
 -- 10. Funktionen zum Testen der Eigenschaften
 prop_applyEmpty :: Term -> Bool
 prop_applyEmpty t = apply empty t == t
