@@ -12,6 +12,16 @@ instance Pretty Term where
   pretty (Comb x []) = x
   pretty (Comb x xs) = x ++ "(" ++ intercalate "," (map pretty xs) ++ ")"
 
+-- Tests für Bonusaufgabe ---
+--   pretty (Comb x xs) | x == "."  = subT (Comb x xs)
+--                      | otherwise = x ++ "(" ++ intercalate "," (map pretty xs) ++ ")"
+
+-- subT :: Term -> String 
+-- subT (Var (VarName t)) = ".(" ++ t ++ ")" 
+-- subT (Comb x t) | x == "." = intercalate "|" (map subT t)
+--                 | otherwise = x ++ intercalate "|" (map subT t)
+
+
 instance Pretty Rule where
   pretty (Rule t []) = pretty t ++ "."
   pretty (Rule t ts) = pretty t ++ " :- " ++ intercalate "," (map pretty ts) ++ "."
