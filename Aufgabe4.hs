@@ -52,16 +52,13 @@ compose (Subst [(a,b)]) (Subst [(c,Comb f d)]) | a == c     = Subst [(c,Comb f d
    where
       repl [] = []
       repl t = map (apply (Subst [(a,b)])) t
-compose (Subst a) (Subst [b]) = Subst (nub (concatMap (`unter` b) a))
--- compose (Subst a) (Subst (_:bs)) = compose (Subst a) (Subst bs)
-compose (Subst (a:as)) (Subst (b:bs)) = combine (Subst (nub (concatMap (`unter` b) (a:as)))) (compose (Subst as) (Subst bs))
+compose (Subst (a:as)) (Subst (b:bs)) = combine (Subst (a:as)) (Subst (b:bs))
 
-unter :: (VarName, Term) -> (VarName, Term) -> [(VarName, Term)]
-unter (a,b) (c,d) = get (compose (Subst [(a,b)]) (Subst [(c,d)]))
-
-get :: Subst -> [(VarName,Term)]
-get (Subst s) = s
-
+-- compose (Subst (a:as)) (Subst (b:bs)) = combine (Subst (nub (concatMap (`unter` b) (a:as)))) (compose (Subst as) (Subst bs))
+-- unter :: (VarName, Term) -> (VarName, Term) -> [(VarName, Term)]
+-- unter (a,b) (c,d) = get (compose (Subst [(a,b)]) (Subst [(c,d)]))
+-- get :: Subst -> [(VarName,Term)]
+-- get (Subst s) = s
 combine :: Subst -> Subst -> Subst
 combine (Subst []) (Subst []) = Subst []
 combine (Subst []) s = s
@@ -69,6 +66,15 @@ combine s (Subst []) = s
 combine (Subst a) (Subst b) = Subst (nub (a++b))
 
 -- Testfälle für compose
+my1 :: Subst
+my1 = Subst [(VarName "A", Var (VarName "B"))]
+my2 :: Subst
+my2 = Subst [(VarName "C", Var (VarName "T"))]
+my3 :: Subst
+my3 = Subst [(VarName "C", Var (VarName "S"))]
+my4 :: Subst
+my4 = Subst [(VarName "E", Var (VarName "C"))]
+
 sub1 :: Subst
 sub1 = Subst [(VarName "D", Var (VarName "E"))]
 sub2 :: Subst
