@@ -112,16 +112,22 @@ instance Pretty Subst where
   pretty (Subst []) = "{}"
   pretty (Subst [(VarName a,b)]) | domain(Subst [(VarName a,b)]) == [] = "{}"
                                  | otherwise = "{" ++ a ++ " -> " ++ pretty b ++ "}"
-  pretty (Subst ((VarName a,b) : cs)) = "{" ++ a ++ " -> " ++ pretty b ++  subPretty (Subst cs) ++ "}"
+  pretty (Subst s) = "{" ++ subPretty (filter (\(x,y) -> Var x /= y) s) ++ "}"
    where
-     subPretty (Subst []) = ""
-     subPretty (Subst ((VarName x,y) : zs)) = ", " ++ x ++ " -> " ++ pretty y ++ subPretty (Subst zs)
+      subPretty :: [(VarName, Term)] -> String
+      subPretty [] = ""
+      subPretty [(VarName a,b)]    = a ++ " -> " ++ pretty b
+      subPretty ((VarName a,b):cs) = a ++ " -> " ++ pretty b ++ ", " ++ subPretty cs
 
 --Tests für Pretty
-test :: String
-test = pretty (single (VarName "A") (Var (VarName "B")))
+aa :: String
+aa = "A"
+bb :: Term
+bb = Var (VarName "A")
+test :: Bool
+test = Var (VarName aa) == bb
 test1 :: String
-test1 = pretty (Subst [(VarName "D", Var (VarName "E")) , (VarName "F", Var (VarName "G")), (VarName "H", Var (VarName "I"))])
+test1 = pretty (Subst [(VarName "A", Var (VarName "A")) , (VarName "F", Var (VarName "F")), (VarName "H", Var (VarName "I"))])
 test2 :: String
 test2 = pretty (single (VarName "F") (Comb "f" [Var (VarName "D"), Comb "true" []]))
 
