@@ -1,5 +1,4 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 module Aufgabe4 where
 import Type
 import Aufgabe2
@@ -123,6 +122,11 @@ hasNoDuplicates xs = sub xs []
                                | otherwise        = sub cs (a:visited)
 
 -- 10. Funktionen zum Testen der Eigenschaften
+teilmenge :: [VarName] -> [VarName] -> Bool 
+teilmenge [] _  = True 
+teilmenge _ []  = False 
+teilmenge (x:xs) ys = x `elem` ys && teilmenge xs ys
+
 prop_applyEmpty :: Term -> Bool
 prop_applyEmpty t = apply empty t == t
 
@@ -141,10 +145,11 @@ prop_domainSingle x = domain (single x (Var x)) == []
 prop_domainSingle2 :: VarName -> Term -> Property
 prop_domainSingle2 x t = t /= Var x ==> domain (single x t) == [x]
 
--- prop_domainCompose :: Subst -> Subst -> Bool 
--- prop_domainCompose s1 s2 = domain(compose(𝑠1,𝑠2)) ⊆ domain(𝑠1) ∪ domain(𝑠2)
+prop_domainCompose :: Subst -> Subst -> Bool 
+prop_domainCompose s1 s2 = domain(compose s1 s2) `teilmenge` (domain s1 ++ domain s2)
 
--- prop_domainCompose2
+prop_domainCompose2 :: VarName -> VarName -> Property
+prop_domainCompose2 x1 x2 = x1 /= x2 ==> domain (compose (single x2 (Var x1)) (single x1 (Var x2))) == [x2]
 
 prop_allVarsEmpty :: Bool
 prop_allVarsEmpty = allVars empty == []
@@ -156,34 +161,21 @@ prop_allVarsSingle2 :: VarName -> Term -> Property
 prop_allVarsSingle2 x t = t /= Var x ==> allVars (single x t) == allVars t ++ [x]
                                       || allVars (single x t) == [x] ++ allVars t
 
--- prop_allVarsCompose
+prop_allVarsCompose :: Subst -> Subst -> Bool
+prop_allVarsCompose s1 s2 = allVars (compose s1 s2) `teilmenge` (allVars s1 ++ allVars s2)
 
--- prop_allVarsCompose2
+prop_allVarsCompose2 :: VarName -> VarName -> Property
+prop_allVarsCompose2 x1 x2 = x1 /= x2 ==> allVars (compose (single x2 (Var x1)) (single x1 (Var x2))) == [x1,x2] || 
+                                          allVars (compose (single x2 (Var x1)) (single x1 (Var x2))) == [x2,x1]
 
 prop_domainAllVars :: Subst -> Bool
-prop_domainAllVars s = testF s
-
--- Testfunktion für prop_domainAllVars
-testF :: Subst -> Bool
-testF (Subst []) = True
-testF (Subst s) = hilfF (domain (Subst s))
-  where
-    hilfF [] = True
-    hilfF (d : ds) = d `elem` allVars (Subst s) && hilfF ds
+prop_domainAllVars s = (domain s) `teilmenge` (allVars s)
 
 prop_restrictEmpty :: [VarName] -> Bool
 prop_restrictEmpty xs = domain (restrictTo empty xs) == []
 
 prop_restrictTo :: Subst -> [VarName] -> Bool
-prop_restrictTo s xs = subProp (restrictTo s xs) xs
-
--- Testfunktion für prop_restrictTo
-subProp :: Subst -> [VarName] -> Bool
-subProp (Subst []) _ = True
-subProp (Subst s) xs = helfer (domain (Subst s))
-   where
-      helfer [] = True
-      helfer (d:ds) = d `elem` xs && helfer ds
+prop_restrictTo s xs = domain (restrictTo s xs) `teilmenge` xs
 
 -- For testing all tests.
 return []
