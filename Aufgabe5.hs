@@ -1,10 +1,10 @@
 {-# LANGUAGE TemplateHaskell #-}
+module Aufgabe5 where
 import Type
-import Aufgabe2
+-- import Aufgabe2
 import Aufgabe3
 import Aufgabe4
 import Test.QuickCheck
-import Control.Monad
 
 
 ds :: Term -> Term -> Maybe (Term, Term)
@@ -60,7 +60,7 @@ prop_dsDomain1 :: Term -> Property
 prop_dsDomain1 t1 = ds t1 t1 == Nothing ==> (unify t1 t1) /= Nothing && domain (extract(unify t1 t1)) == []
 
 extract :: Maybe Subst -> Subst 
-extract Nothing = Subst []
+extract Nothing = error "Fehler"
 extract (Just s) = s 
 
 prop_applyUnify :: Term -> Term -> Property 
