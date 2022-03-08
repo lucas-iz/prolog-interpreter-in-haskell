@@ -1,9 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 import Type
--- import Aufgabe2
 import Aufgabe3
-import Aufgabe4 
--- import Aufgabe5
+import Aufgabe4
 import Data.List
 import Test.QuickCheck
 
