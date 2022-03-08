@@ -46,3 +46,27 @@ combine (Subst s1) (Subst s2) = Subst (s1++s2)
 -- term2 :: Term
 -- term2 = Comb "f" [Var(VarName "X")]
 
+-- For testing.
+prop_dsSameTerms :: Term -> Bool 
+prop_dsSameTerms t = ds t t == Nothing
+
+prop_dsDiffTerms :: Term -> Term -> Property 
+prop_dsDiffTerms t1 t2 = ds t1 t2 /= Nothing ==> t1 /= t2
+
+prop_dsDomain :: Term -> Term -> Property 
+prop_dsDomain t1 t2 = ds t1 t2 == Nothing ==> (unify t1 t2) /= Nothing && domain (extract(unify t1 t2)) == []
+
+prop_dsDomain1 :: Term -> Property 
+prop_dsDomain1 t1 = ds t1 t1 == Nothing ==> (unify t1 t1) /= Nothing && domain (extract(unify t1 t1)) == []
+
+extract :: Maybe Subst -> Subst 
+extract Nothing = Subst []
+extract (Just s) = s 
+
+prop_applyUnify :: Term -> Term -> Property 
+prop_applyUnify t1 t2 = unify t1 t2 /= Nothing ==> ds (apply (extract (unify t1 t2)) t1) (apply (extract (unify t1 t2)) t2) == Nothing
+
+-- For testing all tests.
+return []
+runTests2 :: IO Bool 
+runTests2 = $quickCheckAll

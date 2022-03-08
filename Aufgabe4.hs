@@ -9,7 +9,7 @@ import Control.Monad
 -- 1. Definieren Sie einen Datentyp Subst zur Repräsentation von Substitutionen.
 -- {A->B} // [(a,b)]
 data Subst = Subst [(VarName, Term)]
-  deriving Show
+  deriving (Eq, Show)
 
 -- 2. Definieren Sie eine Funktion domain :: Subst -> [VarName], die den Definitionsbereich einer Substitution zurückgibt. 
 -- Mit dem Definitionsbereich einer Substitution sind dabei aus praktischen Gründen nur diejenigen Variablen gemeint, die nicht auf sich selbst abgebildet werden.
