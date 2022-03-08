@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+module Aufgabe6 where
 import Type
 import Aufgabe3
 import Aufgabe4

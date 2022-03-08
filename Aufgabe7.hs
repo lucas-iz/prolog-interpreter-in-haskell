@@ -2,13 +2,26 @@
 import Type
 import Aufgabe4
 import Aufgabe5
-data SLDTree = Knoten Goal | Zweig [(Maybe Subst, SLDTree)] | Empty
+import Aufgabe6
+data SLDTree = Knoten (Maybe Goal) | Zweige [(Maybe Subst, SLDTree)]
 
 sld :: Prog -> Goal -> SLDTree
-sld (Prog []) _ = Empty -- Wir haben kein Programm :(
-sld _ (Goal []) = Empty -- Wir haben keine Anfrage :(
+sld (Prog []) _ = Knoten Nothing -- Wir haben kein Programm :(
+sld _ (Goal []) = Knoten Nothing -- Wir haben keine Anfrage :(
+-- sld (Prog ((Rule r rt) : rs)) (Goal [t]) = Zweig [(unify r t, apply (extract (unify r t)) t)]
 
-sld (Prog ((Rule r _)  : rs)) (Goal [t]) = Zweig [(unify r t, apply (extract (unify r t)) t)]
+-- sld (Prog ((Rule r rt):rs)) (Goal (t:ts)) = sld (Prog ((Rule r rt):rs)) (Goal (testaufruf (Rule r rt) (Goal [t])))
+   
+
+mapTerms :: Term -> [Term] -> Term -> [Term]
+mapTerms r rt t = map (apply (extract (unify r t))) rt
+
+test1 :: Rule -> Goal -> [Term]
+test1 (Rule r rt) (Goal (t:_)) = let (Rule _ nt) = rename [] (Rule r rt)
+                                 in mapTerms r nt t
+
+test2 :: Prog -> Goal -> [[Term]]
+test2 (Prog rules) go = map (`test1` go) rules
 
 
 
