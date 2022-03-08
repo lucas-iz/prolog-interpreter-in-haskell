@@ -1,8 +1,10 @@
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+{-# LANGUAGE TemplateHaskell #-}
 import Type
 import Aufgabe2
 import Aufgabe3
 import Aufgabe4
+import Test.QuickCheck
+import Control.Monad
 
 
 ds :: Term -> Term -> Maybe (Term, Term)
@@ -39,42 +41,8 @@ combine (Subst s1) (Subst s2) = Subst (s1++s2)
 -- termPretty :: String
 -- termPretty = pretty (Var (VarName "A"))
 
-
 -- term1 :: Term
 -- term1 = Var(VarName "X")
 -- term2 :: Term
 -- term2 = Comb "f" [Var(VarName "X")]
-
--- -- Testfälle      
--- t1 :: Term
--- t1 = Comb "f" [
---       Var (VarName "A"), 
---       Comb "g" [
---          Comb "s" [
---             Var (VarName "U")
---          ],
---          Comb "t" [
---             Var (VarName "V")
---          ]
---       ]
---    ]
-
--- t2 :: Term
--- t2 = Comb "f" [
---       Var (VarName "A"), 
---       Comb "g" [
---          Comb "s" [
---             Var (VarName "X")
---          ],
---          Comb "t" [
---             Var (VarName "Z")
---          ]
---       ]
---    ]
-
--- t3 :: Term 
--- t3 = Var(VarName "A")
-
--- t4 :: Term
--- t4 = Var (VarName "B") 
 
