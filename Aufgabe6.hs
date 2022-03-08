@@ -1,43 +1,55 @@
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+{-# LANGUAGE TemplateHaskell #-}
 import Type
-import Aufgabe2
+-- import Aufgabe2
 import Aufgabe3
 import Aufgabe4 
 -- import Aufgabe5
 import Data.List
+import Test.QuickCheck
 
+-- Ändert die Namen aller Variablen in einer Regel.
 rename :: [VarName] -> Rule -> Rule
-rename vars (Rule t []) = Rule (apply (replace (allVars t) (validVars vars (Rule t []))) t) []
-rename vars (Rule t ts) = Rule (apply (replace (allVars t) (validVars vars (Rule t ts))) t)
-                               (map (\x -> apply (replace (allVars x) (validVars vars (Rule t ts))) x) ts)
+rename vars (Rule t []) = Rule (apply (replace (allVars (Rule t [])) (validVars vars (Rule t []))) t) []
+rename vars (Rule t ts) = Rule (apply (replace (allVars (Rule t ts)) (validVars vars (Rule t ts))) t)
+                               (map (apply (replace (allVars (Rule t ts)) (validVars vars (Rule t ts)))) ts)
 
+-- Liste aller erlaubten Variablen.
+-- (Alle freshVars, die nicht in der Liste oder der Rule enthalten sind)
 validVars :: [VarName] -> Rule -> [VarName]
 validVars vars rule = freshVars \\ (vars ++ allVars rule)
 
+-- Liefert eine Substitution von nicht erlaubten zu erlaubten Variablen.
+-- 1. Argument: Liste aller Variablen einer Rule (nicht erlaubt)
+-- 2. Argument: Liste aller erlaubten Variablen
 replace :: [VarName] -> [VarName] -> Subst
 replace [] _ = empty
 replace _ [] = empty
 replace t v = Subst (map (\(a,b) -> (a, Var b)) (zip t v))
 
--- replaceTerm :: Term -> Term
+-- Prüft ob der Schnitt zweier Mengen leer ist. True falls ja. 
+-- (Wird zum Testen der Eigenschaften verwendet)
+leererSchnitt :: [VarName] -> [VarName] -> Bool
+leererSchnitt [] _ = True 
+leererSchnitt _ [] = True
+leererSchnitt (x:xs) ys = x `notElem` ys && leererSchnitt xs ys
 
-rule1 :: Rule
-rule1 = Rule term1 [term2, term3]
-rule2 :: Rule
-rule2 = Rule term1 []
+-- Testfunktionen für alle gegebenen Eigenschaften.
+prop_allVarsX2 :: [VarName] -> Rule -> Bool 
+prop_allVarsX2 xs r = allVars (rename xs r) `leererSchnitt` allVars r
 
-term1 :: Term
-term1 = Var (VarName "A")
-term2 :: Term
-term2 = Var (VarName "B")
-term3 :: Term
-term3 = Var (VarName "C")
+prop_allVarsX1 :: [VarName] -> Rule -> Bool 
+prop_allVarsX1 xs r = allVars (rename xs r) `leererSchnitt` xs
 
-testPretty :: String
-testPretty = pretty (Var (VarName "Z"))
+prop_varsRename :: [VarName] -> Rule -> Bool 
+prop_varsRename xs r = VarName "_" `notElem` allVars (rename xs r)
 
-forbidden :: [VarName]
-forbidden = [VarName "A", VarName "C"]
+prop_varsRename2 :: [VarName] -> Rule -> Property 
+prop_varsRename2 xs r = VarName "_" `notElem` allVars r ==> length (allVars (rename xs r)) == length (allVars r)
 
-test :: Subst
-test = replace (allVars rule1) (validVars forbidden rule1)
+prop_varsRename3 :: [VarName] -> Rule -> Bool 
+prop_varsRename3 xs r = length (allVars (rename xs r)) >= length (allVars r)
+
+-- For testing all tests.
+return []
+runTests3 :: IO Bool 
+runTests3 = $quickCheckAll
