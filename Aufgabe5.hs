@@ -36,10 +36,14 @@ combine (Subst []) s = s
 combine s (Subst []) = s
 combine (Subst s1) (Subst s2) = Subst (s1++s2)
 
-term1 :: Term
-term1 = Comb "ehemann" [Comb "monika" [], Var(VarName "M")]
-term2 :: Term
-term2 = Comb "ehemann" [Var(VarName "F"),Comb "herbert" []]
+-- termPretty :: String
+-- termPretty = pretty (Var (VarName "A"))
+
+
+-- term1 :: Term
+-- term1 = Var(VarName "X")
+-- term2 :: Term
+-- term2 = Comb "f" [Var(VarName "X")]
 
 -- -- Testfälle      
 -- t1 :: Term
