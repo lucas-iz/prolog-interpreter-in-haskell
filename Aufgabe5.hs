@@ -27,16 +27,26 @@ sub t1 t2 s | ds (apply s t1) (apply s t2) == Nothing = Just s
             
 sub2 :: Maybe (Term, Term) -> Term -> Term -> Subst -> Maybe Subst
 sub2 Nothing _ _ _ = Nothing -- ???
-sub2 (Just (Var a,b)) t1 t2 s | a `notElem` allVars b = sub t1 t2 (combine s (Subst [(a,b)]))
+sub2 (Just (Var a,b)) t1 t2 s | a `notElem` allVars b = sub t1 t2 (compose (Subst [(a,b)]) s)
                               | otherwise = Nothing
-sub2 (Just (a, Var b)) t1 t2 s | b `notElem` allVars a = sub t1 t2 (combine s (Subst [(b,a)]))
+sub2 (Just (a, Var b)) t1 t2 s | b `notElem` allVars a = sub t1 t2 (compose (Subst [(b,a)]) s)
                                | otherwise = Nothing
 sub2 (Just (_,_)) _ _ _ = Nothing
 
-combine :: Subst -> Subst -> Subst 
-combine (Subst []) s = s
-combine s (Subst []) = s
-combine (Subst s1) (Subst s2) = Subst (s1++s2)
+-- ORIGINAL:
+-- sub2 :: Maybe (Term, Term) -> Term -> Term -> Subst -> Maybe Subst
+-- sub2 Nothing _ _ _ = Nothing -- ???
+-- sub2 (Just (Var a,b)) t1 t2 (Subst s) | a `notElem` allVars b = sub t1 t2 (Subst ((a,b):s))
+--                               | otherwise = Nothing
+-- sub2 (Just (a, Var b)) t1 t2 (Subst s) | b `notElem` allVars a = sub t1 t2 (Subst ((b,a):s))
+--                                | otherwise = Nothing
+-- sub2 (Just (_,_)) _ _ _ = Nothing
+
+
+-- combine :: Subst -> Subst -> Subst 
+-- combine (Subst []) s = s
+-- combine s (Subst []) = s
+-- combine (Subst s1) (Subst s2) = Subst (s1++s2)
 
 -- termPretty :: String
 -- termPretty = pretty (Var (VarName "A"))
@@ -60,7 +70,7 @@ prop_dsDomain1 :: Term -> Property
 prop_dsDomain1 t1 = ds t1 t1 == Nothing ==> (unify t1 t1) /= Nothing && domain (extract(unify t1 t1)) == []
 
 extract :: Maybe Subst -> Subst 
-extract Nothing = error "Fehler"
+extract Nothing = Subst []
 extract (Just s) = s 
 
 prop_applyUnify :: Term -> Term -> Property 
@@ -70,3 +80,6 @@ prop_applyUnify t1 t2 = unify t1 t2 /= Nothing ==> ds (apply (extract (unify t1 
 return []
 runTests2 :: IO Bool 
 runTests2 = $quickCheckAll
+
+test123 :: [Maybe Subst]
+test123 = filter (/= Nothing) [Nothing]
