@@ -5,6 +5,7 @@ import Aufgabe3 (Vars(allVars))
 import Aufgabe4
 import Aufgabe5
 import Aufgabe6
+import Data.List
 unnoetig :: String 
 unnoetig = pretty (Var (VarName "A"))
 unnoetig2 :: [VarName]
@@ -37,12 +38,12 @@ prog = Prog [Rule (Comb "ehemann" [Comb "monika" [], Comb "herbert" []]) [], Rul
 goal :: Goal
 goal = Goal [Comb "ehemann" [Comb "monika" [], Var (VarName "A")]]
 
--- anfrage :: Term
--- anfrage = Comb "append" [Var (VarName "B"),Var (VarName "Y"),Comb "[]" []]
--- prog :: Prog
--- prog = Prog [Rule (Comb "append" [Comb "[]" [], Var (VarName "Ys"), Var (VarName "Ys")]) [], Rule (Comb "append" [Comb "." [Var (VarName "X"), Var (VarName "Xs")], Var (VarName "Ys"), Comb "." [Var (VarName "X"), Var (VarName "Zs")]]) [Comb "append" [Var (VarName "Xs"), Var (VarName "Ys"), Var (VarName "Zs")]]]
--- goal :: Goal
--- goal = Goal [Comb "append" [Var (VarName "X"), Var (VarName "Y"), Comb "." [Comb "1" [], Comb "[]" []]]]
+anfrage :: Term
+anfrage = Comb "append" [Var (VarName "B"),Var (VarName "Y"),Comb "[]" []]
+prog3 :: Prog
+prog3 = Prog [Rule (Comb "append" [Comb "[]" [], Var (VarName "Ys"), Var (VarName "Ys")]) [], Rule (Comb "append" [Comb "." [Var (VarName "X"), Var (VarName "Xs")], Var (VarName "Ys"), Comb "." [Var (VarName "X"), Var (VarName "Zs")]]) [Comb "append" [Var (VarName "Xs"), Var (VarName "Ys"), Var (VarName "Zs")]]]
+goal3 :: Goal
+goal3 = Goal [Comb "append" [Var (VarName "X"), Var (VarName "Y"), Comb "." [Comb "1" [], Comb "[]" []]]]
 
 testMap :: Prog -> Term -> [Maybe Subst]
 testMap (Prog ps) g = map (\(Rule r _) -> unify r g) (renameRules (allVars g) ps)
@@ -86,8 +87,17 @@ testUnify (Comb r (a:as)) (Comb t (b:bs)) = r == t && testUnify a b && testUnify
 
 instance Pretty SLDTree where
    pretty Empty = ""
-   pretty (SLDTree g []) = pretty g
-   pretty (SLDTree g ((s,tr):xs)) = pretty g ++ "\n+-- " ++ pretty (extract s) ++ "\n|   " ++ pretty tr ++ "\n" ++ pretty (SLDTree g xs)
+   pretty tree = prettyTree 0 tree
+      where
+         prettyTree n (SLDTree g tr) = intercalate "\n" 
+                                     $ prettyIndented n g : map (\(Just a,b) -> prettyIndented2 (n+1) a ++ "\n" ++ prettyTree (n+1) b) tr
+         prettyIndented 0 g = pretty g
+         prettyIndented n g = concat (replicate (n - 1) "|   ") ++ "|   " ++ pretty g
+         prettyIndented2 0 s = pretty s
+         prettyIndented2 n s = concat (replicate (n - 1) "|   ") ++ "+-- " ++ pretty s
+
+   -- pretty (SLDTree g []) = pretty g
+   -- pretty (SLDTree g ((s,tr):xs)) = pretty g ++ "\n+-- " ++ pretty (extract s) ++ "\n|   " ++ pretty tr ++ "\n" ++ pretty (SLDTree g xs)
 
 -- instance Pretty (Rose a) where
 --   pretty t = prettyTree 0 t
