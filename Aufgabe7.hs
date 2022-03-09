@@ -17,7 +17,7 @@ sld :: Prog -> Goal -> SLDTree
 sld (Prog []) g = SLDTree g [] -- Wir haben kein Programm :(
 sld _ (Goal []) = Empty        -- Wir haben keine Anfrage :(
 
-sld (Prog ps) (Goal (g:gs)) = SLDTree (Goal (g:gs)) (zip substs terms)
+sld (Prog ps) (Goal (g:gs)) = SLDTree (Goal (g:gs)) (zip substs (map (sld (Prog ps)) terms))
    where 
       substs = map (\(Rule r _) -> unify r g) (filter (filterRule g) ps)
       terms = map (\(Rule r rs) -> Goal (map (apply (extract (unify r g))) rs)) (filter (filterRule g) ps)
@@ -50,15 +50,15 @@ testUnify (Comb r []) (Comb t []) = r == t
 testUnify (Comb r (a:as)) (Comb t (b:bs)) = r == t && testUnify a b && testUnify (Comb r as) (Comb t bs)
 
 
--- prog :: Prog
--- prog = Prog [Rule (Comb "append" [Comb "[]" [], Var (VarName "Ys"), Var (VarName "Ys")]) [], Rule (Comb "append" [Comb "." [Var (VarName "X"), Var (VarName "Xs")], Var (VarName "Ys"), Comb "." [Var (VarName "X"), Var (VarName "Zs")]]) [Comb "append" [Var (VarName "Xs"), Var (VarName "Ys"), Var (VarName "Zs")]]]
--- goal :: Goal
--- goal = Goal [Comb "append" [Var (VarName "X"), Var (VarName "Y"), Comb "." [Comb "1" [], Comb "[]" []]]]
-
 prog :: Prog
-prog = Prog [Rule (Comb "ehemann" [Comb "monika" [], Comb "herbert" []]) [], Rule (Comb "ehemann" [Comb "monika" [], Comb "frank" []]) []]
+prog = Prog [Rule (Comb "append" [Comb "[]" [], Var (VarName "Ys"), Var (VarName "Ys")]) [], Rule (Comb "append" [Comb "." [Var (VarName "X"), Var (VarName "Xs")], Var (VarName "Ys"), Comb "." [Var (VarName "X"), Var (VarName "Zs")]]) [Comb "append" [Var (VarName "Xs"), Var (VarName "Ys"), Var (VarName "Zs")]]]
 goal :: Goal
-goal = Goal [Comb "ehemann" [Comb "monika" [], Var (VarName "A")]]
+goal = Goal [Comb "append" [Var (VarName "X"), Var (VarName "Y"), Comb "." [Comb "1" [], Comb "[]" []]]]
+
+-- prog :: Prog
+-- prog = Prog [Rule (Comb "ehemann" [Comb "monika" [], Comb "herbert" []]) [], Rule (Comb "ehemann" [Comb "monika" [], Comb "frank" []]) []]
+-- goal :: Goal
+-- goal = Goal [Comb "ehemann" [Comb "monika" [], Var (VarName "A")]]
 
 test :: SLDTree
 test = sld prog goal
