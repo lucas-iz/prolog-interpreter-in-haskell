@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 import Type
 import Aufgabe2
 import Aufgabe3
