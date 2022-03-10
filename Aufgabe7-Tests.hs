@@ -9,28 +9,30 @@ import Data.List
 data SLDTree = SLDTree Goal [(Maybe Subst, SLDTree)]
    deriving Show
 
+sld :: Prog -> Goal -> SLDTree
+sld p g = sld1 p g []
 -- Creates a SLDTree
-sld :: Prog -> Goal -> [VarName] -> SLDTree
-sld (Prog []) g _ = SLDTree g [] 
-sld _ (Goal []) _ = SLDTree (Goal [Comb "" []]) []
-sld (Prog ps) (Goal (g:gs)) v = SLDTree (Goal (g:gs)) (map (sldTupel (Prog ps) v) (filter (\(a,_) -> a /= Nothing)  (zip substs goals)))
+sld1 :: Prog -> Goal -> [VarName] -> SLDTree
+sld1 (Prog []) g _ = SLDTree g [] 
+sld1 _ (Goal []) _ = SLDTree (Goal [Comb "" []]) []
+sld1 (Prog ps) (Goal (g:gs)) v = SLDTree (Goal (g:gs)) (map (sldTupel (Prog ps) v substs) (filter (\(a,_) -> a /= Nothing)  (zip substs goals)))
    where
       substs = map (\(Rule r _) -> unify r g) (renameRules (allVars g ++ v) ps)
       goals = map (\(Rule r rs) -> Goal (map (apply (extract (unify r g))) rs)) (renameRules (allVars g ++ v) ps)
 
-test :: [Maybe Subst] -> [VarName]
-test [] = []
-test ((Just (Subst [])) : _) = []
-test [(Just (Subst [(v, _)]))] = [v]
-test [(Just (Subst ((v, _) : ss)))] = v : test (Just (Subst ss))
+substToVarName :: [Maybe Subst] -> [VarName]
+substToVarName [] = []
+substToVarName (Nothing : xs) = substToVarName xs
+substToVarName ((Just (Subst [])) : _) = []
+substToVarName ((Just (Subst ((v, _) : ss))) : r) = (v : substToVarName [Just (Subst ss)]) ++ substToVarName r
 
 -- Renames the rules of a program.
 renameRules :: [VarName] -> [Rule] -> [Rule]
 renameRules vars rs = map (rename vars) rs
 
 -- Puts / Calls the 'sld'-function within a tupel.
-sldTupel :: Prog -> [VarName] -> (Maybe Subst, Goal) -> (Maybe Subst, SLDTree)
-sldTupel p v (a,b)  = (a, sld p b (v ++ test a))
+sldTupel :: Prog -> [VarName] -> [Maybe Subst] -> (Maybe Subst, Goal) -> (Maybe Subst, SLDTree)
+sldTupel p v w (a,b)  = (a, sld1 p b (v ++ substToVarName w))
 
 instance Pretty SLDTree where
    pretty tree = prettyTree 0 tree
@@ -44,7 +46,7 @@ instance Pretty SLDTree where
          prettyIndented2 n s = concat (replicate (n - 1) "|   ") ++ "+-- " ++ pretty s
 
 
---- Testfälle ---
+--- substToVarNamefälle ---
 prog1 :: Prog
 prog1 = Prog [Rule (Comb "ehemann" [Comb "monika" [], Comb "herbert" []]) [], Rule (Comb "ehemann" [Comb "monika" [], Comb "frank" []]) []]
 goal1 :: Goal
