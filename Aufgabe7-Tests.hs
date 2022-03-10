@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+module Aufgabe7 where
 import Type
 import Aufgabe2
 import Aufgabe3
@@ -45,6 +45,7 @@ instance Pretty SLDTree where
          prettyIndented n g = concat (replicate (n - 1) "|   ") ++ "|   " ++ pretty g
          prettyIndented2 0 s = pretty s
          prettyIndented2 n s = concat (replicate (n - 1) "|   ") ++ "+-- " ++ pretty s
+
 
 
 --- substToVarNamefälle ---

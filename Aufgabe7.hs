@@ -1,5 +1,4 @@
 module Aufgabe7 where
-
 import Type
 import Aufgabe2
 import Aufgabe3
@@ -48,6 +47,7 @@ instance Pretty SLDTree where
          prettyIndented2 n s = concat (replicate (n - 1) "|   ") ++ "+-- " ++ pretty s
 
 
+
 --- substToVarNamefälle ---
 prog1 :: Prog
 prog1 = Prog [Rule (Comb "ehemann" [Comb "monika" [], Comb "herbert" []]) [], Rule (Comb "ehemann" [Comb "monika" [], Comb "frank" []]) []]
@@ -73,7 +73,47 @@ type Strategy = SLDTree -> [Subst]
 -- dfs :: Strategy   -- Tiefensuche
 -- Durchlaufe Baum und liefere alle Ergebnisse.
 
--- bfs :: Strategy   -- Breitensuche
--- Durchlaufe Baum und liefere alle Ergebnisse.
+dfs :: Strategy
+dfs (SLDTree g xs) = map (filterSubst (allVars g)) (dfs1 [] (SLDTree g xs))
+
+filterSubst :: [VarName] -> Subst -> Subst
+filterSubst [] _ = Subst []
+filterSubst _ (Subst []) = Subst []
+filterSubst v (Subst (s:ss)) | fst s `elem` v = Subst [s] `combine` filterSubst v (Subst ss)
+                             | otherwise = filterSubst v (Subst ss)
+
+combine :: Subst -> Subst -> Subst 
+combine (Subst s1) (Subst s2) = Subst (s1++s2)
+
+dfs1 :: [Subst] -> SLDTree -> [Subst]
+dfs1 v (SLDTree _ xs) = map (viaCompose . mapf v) xs
+
+mapf :: [Subst] -> (Maybe Subst, SLDTree) -> [Subst]
+mapf s (a,b) | isLeaf b  = extract a : s
+             | otherwise = dfs1 (extract a : s) b
+
+viaCompose :: [Subst] -> Subst
+viaCompose [] = Subst []
+viaCompose (x:xs) = compose x (viaCompose xs)
+
+isLeaf :: SLDTree -> Bool 
+isLeaf (SLDTree (Goal [Comb g _]) _) = g == ""
+isLeaf _ = False
+
+
+
+bfs :: Strategy   -- Breitensuche
+bfs (SLDTree g xs) = map (filterSubst (allVars g)) (dfs2 [] (SLDTree g xs))
+
+dfs2 :: [Subst] -> SLDTree -> [Subst]
+-- dfs2 v (SLDTree _ []) = 
+dfs2 v (SLDTree _ xs) = map (viaCompose . mapf2 v) xs
+
+mapf2 :: [Subst] -> (Maybe Subst, SLDTree) -> [Subst]
+mapf2 s (a,b) | isLeaf b  = extract a : s
+              | otherwise = [Subst []]
+
+
+
 
 -- solveWith :: Prog -> Goal -> Strategy -> [Subst]
