@@ -99,7 +99,20 @@ isLeaf :: SLDTree -> Bool
 isLeaf (SLDTree (Goal [Comb g _]) _) = g == ""
 isLeaf _ = False
 
--- bfs :: Strategy   -- Breitensuche
--- Durchlaufe Baum und liefere alle Ergebnisse.
+
+
+bfs :: Strategy   -- Breitensuche
+bfs (SLDTree g xs) = map (filterSubst (allVars g)) (dfs2 [] (SLDTree g xs))
+
+dfs2 :: [Subst] -> SLDTree -> [Subst]
+-- dfs2 v (SLDTree _ []) = 
+dfs2 v (SLDTree _ xs) = map (viaCompose . mapf2 v) xs
+
+mapf2 :: [Subst] -> (Maybe Subst, SLDTree) -> [Subst]
+mapf2 s (a,b) | isLeaf b  = extract a : s
+              | otherwise = [Subst []]
+
+
+
 
 -- solveWith :: Prog -> Goal -> Strategy -> [Subst]
