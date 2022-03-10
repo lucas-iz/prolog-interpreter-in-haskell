@@ -115,5 +115,5 @@ mapf2 s (a,b) | isLeaf b  = extract a : s
 
 
 
-
--- solveWith :: Prog -> Goal -> Strategy -> [Subst]
+solveWith :: Prog -> Goal -> Strategy -> [Subst]
+solveWith p g s = s (sld p g)
