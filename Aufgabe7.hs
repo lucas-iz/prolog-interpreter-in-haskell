@@ -9,27 +9,36 @@ import Data.List
 data SLDTree = SLDTree Goal [(Maybe Subst, SLDTree)]
    deriving Show
 
--- Creates a SLDTree
 sld :: Prog -> Goal -> SLDTree
-sld (Prog []) g = SLDTree g []
-sld _ (Goal []) = SLDTree (Goal [Comb "" []]) []        
-sld (Prog ps) (Goal (g:gs)) = SLDTree (Goal (g:gs)) (map (sldTupel (Prog ps)) (filter (\(a,_) -> a /= Nothing) (zip substs goals)))
+sld p g = sld1 p g []
+-- Creates a SLDTree
+sld1 :: Prog -> Goal -> [VarName] -> SLDTree
+sld1 (Prog []) g _ = SLDTree g [] 
+sld1 _ (Goal []) _ = SLDTree (Goal [Comb "" []]) []
+sld1 (Prog ps) (Goal (g:gs)) v = SLDTree (Goal (g:gs)) (map (sldTupel (Prog ps) v substs) (filter (\(a,_) -> a /= Nothing)  (zip substs goals)))
    where
-      substs = map (\(Rule r _) -> unify r g) (renameRules (allVars g) ps)
-      goals = map (\(Rule r rs) -> Goal (map (apply (extract (unify r g))) rs)) (renameRules (allVars g) ps)
+      substs = map (\(Rule r _) -> unify r g) (renameRules (allVars g ++ v) ps)
+      goals = map (\(Rule r rs) -> Goal (map (apply (extract (unify r g))) rs)) (renameRules (allVars g ++ v) ps)
+
+substToVarName :: [Maybe Subst] -> [VarName]
+substToVarName [] = []
+substToVarName (Nothing : xs) = substToVarName xs
+substToVarName ((Just (Subst [])) : _) = []
+substToVarName ((Just (Subst ((v, _) : ss))) : r) = (v : substToVarName [Just (Subst ss)]) ++ substToVarName r
 
 -- Renames the rules of a program.
 renameRules :: [VarName] -> [Rule] -> [Rule]
-renameRules vars rs = map (rename vars) rs 
+renameRules vars rs = map (rename vars) rs
 
 -- Puts / Calls the 'sld'-function within a tupel.
-sldTupel :: Prog -> (Maybe Subst, Goal) -> (Maybe Subst, SLDTree)
-sldTupel p (a,b) = (a, sld p b)
+sldTupel :: Prog -> [VarName] -> [Maybe Subst] -> (Maybe Subst, Goal) -> (Maybe Subst, SLDTree)
+sldTupel p v w (a,b)  = (a, sld1 p b (v ++ substToVarName w))
 
 instance Pretty SLDTree where
    pretty tree = prettyTree 0 tree
       where
-         prettyTree n (SLDTree g tr) = intercalate "\n" 
+         prettyTree 6 _ = intercalate "\n" [concat (replicate 5 "|   ") ++ "|    ..."]
+         prettyTree n (SLDTree g tr) = intercalate "\n"
                                      $ prettyIndented n g : map (\(Just a,b) -> prettyIndented2 (n+1) a ++ "\n" ++ prettyTree (n+1) b) tr
          prettyIndented 0 g = pretty g
          prettyIndented n g = concat (replicate (n - 1) "|   ") ++ "|   " ++ pretty g
@@ -37,9 +46,9 @@ instance Pretty SLDTree where
          prettyIndented2 n s = concat (replicate (n - 1) "|   ") ++ "+-- " ++ pretty s
 
 
---- Testfälle ---
+--- substToVarNamefälle ---
 prog1 :: Prog
-prog1 = Prog [Rule (Comb "ehemann" [Comb "monika" [], Comb "herbert" []]) [], Rule (Comb "ehemann" [Comb "anette" [], Comb "frank" []]) []]
+prog1 = Prog [Rule (Comb "ehemann" [Comb "monika" [], Comb "herbert" []]) [], Rule (Comb "ehemann" [Comb "monika" [], Comb "frank" []]) []]
 goal1 :: Goal
 goal1 = Goal [Comb "ehemann" [Comb "monika" [], Var (VarName "A")]]
 
@@ -52,6 +61,9 @@ prog3 :: Prog
 prog3 = Prog [Rule (Comb "append" [Comb "[]" [], Var (VarName "Ys"), Var (VarName "Ys")]) [], Rule (Comb "append" [Comb "." [Var (VarName "X"), Var (VarName "Xs")], Var (VarName "Ys"), Comb "." [Var (VarName "X"), Var (VarName "Zs")]]) [Comb "append" [Var (VarName "Xs"), Var (VarName "Ys"), Var (VarName "Zs")]]]
 goal3 :: Goal
 goal3 = Goal [Comb "append" [Var (VarName "X"), Var (VarName "Y"), Comb "." [Comb "1" [], Comb "[]" []]]]
+
+goal4 :: Goal
+goal4 = Goal [Comb "append" [Var (VarName "X"), Var (VarName "Y"), (Var (VarName "Z"))]]
 
 
 type Strategy = SLDTree -> [Subst]
