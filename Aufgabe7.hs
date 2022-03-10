@@ -1,3 +1,5 @@
+module Aufgabe7 where
+
 import Type
 import Aufgabe2
 import Aufgabe3
