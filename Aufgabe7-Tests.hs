@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 import Type
 import Aufgabe2
 import Aufgabe3
@@ -70,6 +71,33 @@ type Strategy = SLDTree -> [Subst]
 
 -- dfs :: Strategy   -- Tiefensuche
 -- Durchlaufe Baum und liefere alle Ergebnisse.
+
+dfs :: Strategy
+dfs (SLDTree g xs) = map (filterSubst (allVars g)) (dfs1 [] (SLDTree g xs))
+
+filterSubst :: [VarName] -> Subst -> Subst
+filterSubst [] _ = Subst []
+filterSubst _ (Subst []) = Subst []
+filterSubst v (Subst (s:ss)) | fst s `elem` v = Subst [s] `combine` filterSubst v (Subst ss)
+                             | otherwise = filterSubst v (Subst ss)
+
+combine :: Subst -> Subst -> Subst 
+combine (Subst s1) (Subst s2) = Subst (s1++s2)
+
+dfs1 :: [Subst] -> SLDTree -> [Subst]
+dfs1 v (SLDTree _ xs) = map (viaCompose . mapf v) xs
+
+mapf :: [Subst] -> (Maybe Subst, SLDTree) -> [Subst]
+mapf s (a,b) | isLeaf b  = extract a : s
+             | otherwise = dfs1 (extract a : s) b
+
+viaCompose :: [Subst] -> Subst
+viaCompose [] = Subst []
+viaCompose (x:xs) = compose x (viaCompose xs)
+
+isLeaf :: SLDTree -> Bool 
+isLeaf (SLDTree (Goal [Comb g _]) _) = g == ""
+isLeaf _ = False
 
 -- bfs :: Strategy   -- Breitensuche
 -- Durchlaufe Baum und liefere alle Ergebnisse.
