@@ -1,130 +1,65 @@
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 import Type
 import Aufgabe2
--- import Aufgabe3
+import Aufgabe3
 import Aufgabe4
 import Aufgabe5
-import Data.Maybe
 import Aufgabe6
-import Aufgabe3 (Vars(allVars))
+import Data.List
 
--- data SLDTree = Knoten (Maybe Goal) | Zweige [(Maybe Subst, SLDTree)]
-data SLDTree = SLDTree Goal [(Maybe Subst, SLDTree)] | Empty | Success
+data SLDTree = SLDTree Goal [(Maybe Subst, SLDTree)]
    deriving Show
 
+-- Creates a SLDTree
 sld :: Prog -> Goal -> SLDTree
-sld (Prog []) g = SLDTree g [] -- Wir haben kein Programm :(
-sld _ (Goal []) = Empty        -- Wir haben keine Anfrage :(
-sld (Prog (r : rs)) (Goal [g]) = SLDTree (Goal [g]) [(subs, tree)]
-    where
-        subs = unify g (firstTermRule (rename (allVars g) r)) 
-        tree | isNothing (unify (firstTermRule r) g) = Empty
-             | isNothing (ds (firstTermRule r) g)  = Success
-             | otherwise = sld (Prog (r : rs)) (Goal [apply (extract (unify (firstTermRule r) g)) g])
+sld (Prog []) g = SLDTree g []
+sld _ (Goal []) = SLDTree (Goal [Comb "" []]) []        
+sld (Prog ps) (Goal (g:gs)) = SLDTree (Goal (g:gs)) (map (sldTupel (Prog ps)) (filter (\(a,_) -> a /= Nothing) (zip substs goals)))
+   where
+      substs = map (\(Rule r _) -> unify r g) (renameRules (allVars g) ps)
+      goals = map (\(Rule r rs) -> Goal (map (apply (extract (unify r g))) rs)) (renameRules (allVars g) ps)
 
-firstTermRule :: Rule -> Term 
-firstTermRule (Rule t _) = t
+-- Renames the rules of a program.
+renameRules :: [VarName] -> [Rule] -> [Rule]
+renameRules vars rs = map (rename vars) rs 
 
-a :: Rule
-a = (rename (allVars goal) r)
+-- Puts / Calls the 'sld'-function within a tupel.
+sldTupel :: Prog -> (Maybe Subst, Goal) -> (Maybe Subst, SLDTree)
+sldTupel p (a,b) = (a, sld p b)
 
-r :: Rule
-r = Rule (Comb "ehemann" [Comb "monika" [], Comb "herbert" []]) []
--- -- 
-prog :: Prog
-prog = Prog [Rule (Comb "ehemann" [Comb "monika" [], Comb "herbert" []]) [], Rule (Comb "ehemann" [Comb "monika" [], Comb "frank" []]) []]
-goal :: Goal
-goal = Goal [Comb "ehemann" [Comb "monika" [], Var (VarName "A")]]
+instance Pretty SLDTree where
+   pretty tree = prettyTree 0 tree
+      where
+         prettyTree n (SLDTree g tr) = intercalate "\n" 
+                                     $ prettyIndented n g : map (\(Just a,b) -> prettyIndented2 (n+1) a ++ "\n" ++ prettyTree (n+1) b) tr
+         prettyIndented 0 g = pretty g
+         prettyIndented n g = concat (replicate (n - 1) "|   ") ++ "|   " ++ pretty g
+         prettyIndented2 0 s = pretty s
+         prettyIndented2 n s = concat (replicate (n - 1) "|   ") ++ "+-- " ++ pretty s
 
 
+--- Testfälle ---
 prog1 :: Prog
-prog1 = Prog [Rule (Comb "append" [Comb "[]" [], Var (VarName "Ys"), Var (VarName "Ys")]) [], Rule (Comb "append" [Comb "." [Var (VarName "X"), Var (VarName "Xs")], Var (VarName "Ys"), Comb "." [Var (VarName "X"), Var (VarName "Zs")]]) [Comb "append" [Var (VarName "Xs"), Var (VarName "Ys"), Var (VarName "Zs")]]]
+prog1 = Prog [Rule (Comb "ehemann" [Comb "monika" [], Comb "herbert" []]) [], Rule (Comb "ehemann" [Comb "anette" [], Comb "frank" []]) []]
 goal1 :: Goal
-goal1 = Goal [Comb "append" [Var (VarName "X"), Var (VarName "Y"), Comb "." [Comb "1" [], Comb "[]" []]]]
-g2 :: Goal
-g2 = Goal [Comb "append" [Var (VarName "X"), Var (VarName "Y"), Var (VarName "Z")]]
+goal1 = Goal [Comb "ehemann" [Comb "monika" [], Var (VarName "A")]]
 
--- hff :: [Rule] -> Goal -> [(Maybe Subst, SLDTree)]
--- hff ((Rule t1 (t : ts)) : rs) (Goal [g]) = [(unify t1 g, (sld ))]
+prog2 :: Prog
+prog2 = Prog [Rule (Comb "p" [Var (VarName "X"), Var (VarName "Z")]) [Comb "q" [Var (VarName "X"), Var (VarName "Y")], Comb "p" [Var (VarName "Y"), Var (VarName "Z")]], Rule (Comb "p" [Var (VarName "X"), Var (VarName "X")]) [], Rule (Comb "q" [Comb "a" [], Comb "b" []]) []]
+goal2 :: Goal
+goal2 = Goal [Comb "p" [Var (VarName "S"), Comb "b" []]]
 
-
--- goal = Goal [apply (extract (unify t1 g)) g]
-
--- bla = (hff ((Rule t1 (t : ts)) : rs) (Goal [g]))
-
-
-progToListOfRules :: Prog -> [Rule]
-progToListOfRules (Prog rs) = rs
-
--- unnoetig :: String 
--- unnoetig = pretty (Var (VarName "A"))
-
--- sld :: Prog -> Goal -> SLDTree
--- sld (Prog []) g = SLDTree g [] -- Wir haben kein Programm :(
--- sld _ (Goal []) = Empty        -- Wir haben keine Anfrage :(
-
--- sld (Prog ps) (Goal (g:gs)) = SLDTree (Goal (g:gs)) (zip substs (map (sld (Prog ps)) terms))
---    where 
---       substs = map (\(Rule r _) -> unify r g) (filter (filterRule g) ps)
---       terms = map (\(Rule r rs) -> Goal (map (apply (extract (unify r g))) rs)) (filter (filterRule g) ps)
---       -- terms = map (sld (Prog ps)) (goals)
-
--- filterRule :: Term -> Rule -> Bool 
--- filterRule t (Rule r _) = callTest t r
+prog3 :: Prog
+prog3 = Prog [Rule (Comb "append" [Comb "[]" [], Var (VarName "Ys"), Var (VarName "Ys")]) [], Rule (Comb "append" [Comb "." [Var (VarName "X"), Var (VarName "Xs")], Var (VarName "Ys"), Comb "." [Var (VarName "X"), Var (VarName "Zs")]]) [Comb "append" [Var (VarName "Xs"), Var (VarName "Ys"), Var (VarName "Zs")]]]
+goal3 :: Goal
+goal3 = Goal [Comb "append" [Var (VarName "X"), Var (VarName "Y"), Comb "." [Comb "1" [], Comb "[]" []]]]
 
 
--- -- sld (Prog ps) (Goal gs) = Zweige (map (funk (Prog ps)) gs)
--- -- sld (Prog (Rule r l:ps)) (Goal gs) | l == []   = Zweige [()]
--- --                                    | otherwise = Zweige (map (funk (Prog ps)) gs)
+type Strategy = SLDTree -> [Subst]
 
--- funk :: Prog -> Term -> (Maybe Subst, SLDTree)
--- -- test if testUnify has result:
--- -- if yes, proceed
--- -- if no, call funk without first rule
--- -- funk (Prog []) _ = (Nothing, Knoten Nothing)
--- funk (Prog ((Rule r l):rs)) t | callTest r t = (unify r t, sld (Prog (Rule r l:rs)) (Goal (map (apply (extract (unify r t))) l)))
---                               | otherwise     = funk (Prog rs) t
+-- dfs :: Strategy   -- Tiefensuche
+-- Durchlaufe Baum und liefere alle Ergebnisse.
 
--- callTest :: Term -> Term -> Bool 
--- callTest (Comb r rs ) (Comb t ts) = testUnify (Comb r rs) (Comb t ts) 
--- callTest _ _ = False
+-- bfs :: Strategy   -- Breitensuche
+-- Durchlaufe Baum und liefere alle Ergebnisse.
 
--- testUnify :: Term -> Term -> Bool 
--- testUnify (Var _) _ = True
--- testUnify _ (Var _) = True
--- testUnify (Comb r []) (Comb t []) = r == t
--- testUnify (Comb r (a:as)) (Comb t (b:bs)) = r == t && testUnify a b && testUnify (Comb r as) (Comb t bs)
-
-
-
--- test :: SLDTree
--- test = sld prog goal
-
--- term1 :: Term
--- term1 = Comb "p" [Var (VarName "X"), Var (VarName "Z")]
--- term2 :: Term
--- term2 = Comb "p" [Var (VarName "X"), Var (VarName "X")]
--- term3 :: Term
--- term3 = Comb "q" [Comb "a" [], Comb "b" []]
-
--- term4 :: Term
--- term4 = Comb "p" [Var (VarName "S"), Comb "b" []]
-
-
-
-
--- -- program :: Prog
--- -- program = Prog [rule1, rule2, rule3]
-
-
--- -- rule1 :: Rule
--- -- rule1 = Rule (Comb "p" [Var (VarName "X"), Var (VarName "Z")]) [Comb "q" [Var (VarName "X"), Var (VarName "Y")], Comb "p" [Var (VarName "Y"), Var (VarName "Z")]]
-
--- -- rule2 :: Rule
--- -- rule2 = Rule (Comb "p" [Var (VarName "X"), Var (VarName "X")]) []
-
--- -- rule3 :: Rule
--- -- rule3 = Rule (Comb "q" [Comb "a" [], Comb "b" []]) []
-
--- -- goal :: Goal
--- -- goal = Goal [Comb "p" [Var (VarName "S"), Comb "b" []]]
+-- solveWith :: Prog -> Goal -> Strategy -> [Subst]

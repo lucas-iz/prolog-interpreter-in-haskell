@@ -70,7 +70,7 @@ prop_dsDomain1 :: Term -> Property
 prop_dsDomain1 t1 = ds t1 t1 == Nothing ==> (unify t1 t1) /= Nothing && domain (extract(unify t1 t1)) == []
 
 extract :: Maybe Subst -> Subst 
-extract Nothing = Subst []
+extract Nothing = error "Something went wrong."
 extract (Just s) = s 
 
 prop_applyUnify :: Term -> Term -> Property 
