@@ -7,8 +7,6 @@ import Aufgabe4
 import Aufgabe5
 import Aufgabe6
 import Data.List
-import Aufgabe7 (extractSubsts)
-import Aufgabe4 (Subst(Subst))
 
 data SLDTree = SLDTree Goal [(Maybe Subst, SLDTree)]
    deriving Show
@@ -123,17 +121,15 @@ bfs (SLDTree g xs) = map (filterSubst (VarName "_":allVars g)) (bfs1 [] (SLDTree
 
 subs :: SLDTree -> [SLDTree] -> [Subst]
 subs _ [] = []
-subs t (g:gs) = subs g (gs ++ kinder g)
-
+subs f (g:gs) = subs g (gs ++ kinder g)
 
 kinder :: SLDTree -> [SLDTree]
 kinder (SLDTree _ xs) = map snd xs
 
-
-extractSubst :: SLDTree -> Subst
-extractSubst (SLDTree g [()])
-extractGoal:: SLDTree -> Goal
-extractGoal (SLDTree g _) = g
+-- extractSubst :: SLDTree -> Subst
+-- extractSubst (SLDTree g [()])
+-- extractGoal:: SLDTree -> Goal
+-- extractGoal (SLDTree g _) = g
 
 
 bfs1 :: [Subst] -> SLDTree -> [Subst]

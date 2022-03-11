@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+
 module Aufgabe7 where
 import Type
 import Aufgabe2
@@ -26,6 +26,8 @@ filterNothing :: [(Maybe Subst, a)] -> [(Maybe Subst, a)]
 filterNothing ls = filter (\(a,_) -> a /= Nothing) ls
 
 list :: Prog -> Goal -> [VarName] -> [(Maybe Subst, Goal)]
+list (Prog []) (Goal [])     _ = []
+list _         (Goal [])     _ = []
 list (Prog ps) (Goal (g:gs)) v = zip substs goals
    where
       substs = map (\(Rule r _) -> unify r g) (renameRules (allVars g ++ v) ps)
