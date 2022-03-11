@@ -78,11 +78,9 @@ goal4 = Goal [Comb "append" [Var (VarName "X"), Var (VarName "Y"), Var (VarName 
 
 type Strategy = SLDTree -> [Subst]
 
--- dfs :: Strategy   -- Tiefensuche
--- Durchlaufe Baum und liefere alle Ergebnisse.
-
+-- Tiefensuche
 dfs :: Strategy
-dfs (SLDTree g xs) = map (filterSubst (allVars g)) (dfs1 [] (SLDTree g xs))
+dfs (SLDTree g xs) = map (filterSubst (VarName "_":allVars g)) (dfs1 [] (SLDTree g xs))
 
 filterSubst :: [VarName] -> Subst -> Subst
 filterSubst [] _ = Subst []
@@ -111,11 +109,14 @@ isLeaf _ = False
 solveWith :: Prog -> Goal -> Strategy -> [Subst]
 solveWith p g s = s (sld p g)
 
+-- Breitensuche
+bfs :: Strategy 
+bfs tree = bfs1 [] tree
 
-bfs :: Strategy   -- Breitensuche
-bfs (SLDTree _ []) = []
-bfs (SLDTree g xs) = map extract (map (\(a,b) -> a) (leaves xs)) -- Substitutionen aller Blätter
-                        ++ concat (map bfs (map knotToTree (notLeaves xs)))
+bfs1 :: [Subst] -> SLDTree -> [Subst]   
+bfs1 _ (SLDTree _ []) = []
+bfs1 s (SLDTree _ xs) = map extract (map (\(a,_) -> a) (leaves xs)) -- Substitutionen aller Blätter
+                        ++ concat (map (bfs1 (s++(extractSubsts xs))) (map knotToTree (notLeaves xs)))
 
 leaves :: [(Maybe Subst, SLDTree)] -> [(Maybe Subst, SLDTree)]
 leaves [] = []
@@ -129,9 +130,10 @@ notLeaves ((s,t) : rest) | isLeaf t  = notLeaves rest
 
 knotToTree :: (Maybe Subst, SLDTree) -> SLDTree
 knotToTree (Nothing, t) = t
-knotToTree (s, t) = t
+knotToTree (_, t) = t
 
-
+extractSubsts :: [(Maybe Subst, SLDTree)] -> [Subst]
+extractSubsts xs = map (\(a,_) -> extract a) xs
 
 
 
