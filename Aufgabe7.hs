@@ -108,23 +108,32 @@ isLeaf :: SLDTree -> Bool
 isLeaf (SLDTree (Goal [Comb g _]) _) = g == ""
 isLeaf _ = False
 
+solveWith :: Prog -> Goal -> Strategy -> [Subst]
+solveWith p g s = s (sld p g)
 
 
 bfs :: Strategy   -- Breitensuche
-bfs (SLDTree g xs) = map (filterSubst (allVars g)) (dfs2 [] (SLDTree g xs))
+bfs (SLDTree _ []) = []
+bfs (SLDTree g xs) = map extract (map (\(a,b) -> a) (leaves xs)) -- Substitutionen aller Blätter
+                        ++ concat (map bfs (map knotToTree (notLeaves xs)))
 
-dfs2 :: [Subst] -> SLDTree -> [Subst]
--- dfs2 v (SLDTree _ []) = 
-dfs2 v (SLDTree _ xs) = map (viaCompose . mapf2 v) xs
+leaves :: [(Maybe Subst, SLDTree)] -> [(Maybe Subst, SLDTree)]
+leaves [] = []
+leaves ((s,t) : rest) | isLeaf t = (s,t) : leaves rest
+                      | otherwise = leaves rest
 
-mapf2 :: [Subst] -> (Maybe Subst, SLDTree) -> [Subst]
-mapf2 s (a,b) | isLeaf b  = extract a : s
-              | otherwise = [Subst []]
+notLeaves :: [(Maybe Subst, SLDTree)] -> [(Maybe Subst, SLDTree)]
+notLeaves [] = []
+notLeaves ((s,t) : rest) | isLeaf t  = notLeaves rest
+                         | otherwise = (s,t) : notLeaves rest
+
+knotToTree :: (Maybe Subst, SLDTree) -> SLDTree
+knotToTree (Nothing, t) = t
+knotToTree (s, t) = t
 
 
 
-solveWith :: Prog -> Goal -> Strategy -> [Subst]
-solveWith p g s = s (sld p g)
+
 
 
 
