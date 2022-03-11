@@ -63,8 +63,8 @@ prop_dsSameTerms t = ds t t == Nothing
 prop_dsDiffTerms :: Term -> Term -> Property 
 prop_dsDiffTerms t1 t2 = ds t1 t2 /= Nothing ==> t1 /= t2
 
-prop_dsDomain :: Term -> Term -> Property 
-prop_dsDomain t1 t2 = ds t1 t2 == Nothing ==> (unify t1 t2) /= Nothing && domain (extract(unify t1 t2)) == []
+-- prop_dsDomain :: Term -> Term -> Property 
+-- prop_dsDomain t1 t2 = ds t1 t2 == Nothing ==> (unify t1 t2) /= Nothing && domain (extract(unify t1 t2)) == []
 
 prop_dsDomain1 :: Term -> Property 
 prop_dsDomain1 t1 = ds t1 t1 == Nothing ==> (unify t1 t1) /= Nothing && domain (extract(unify t1 t1)) == []
