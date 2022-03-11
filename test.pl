@@ -1,3 +1,6 @@
+ehemann(monika, herbert).
+ehemann(monika, frank).
+
 p(X,Z) :- q(X,Y), p(Y,Z).
 p(X,X).
 q(a,b).

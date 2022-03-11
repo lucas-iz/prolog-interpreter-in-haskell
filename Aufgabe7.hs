@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 module Aufgabe7 where
 import Type
 import Aufgabe2
@@ -14,26 +15,33 @@ sld :: Prog -> Goal -> SLDTree
 sld p g = sld1 p g []
 -- Creates a SLDTree
 sld1 :: Prog -> Goal -> [VarName] -> SLDTree
-sld1 (Prog []) g _ = SLDTree g [] 
+sld1 (Prog []) g _ = SLDTree g []
 sld1 _ (Goal []) _ = SLDTree (Goal [Comb "" []]) []
-sld1 (Prog ps) (Goal (g:gs)) v = SLDTree (Goal (g:gs)) (map (sldTupel (Prog ps) v substs) (filter (\(a,_) -> a /= Nothing)  (zip substs goals)))
+sld1 p g v = SLDTree g (map (mapSLD p v) (filterNothing (list p g v)))
+
+mapSLD :: Prog -> [VarName] -> (Maybe Subst, Goal) -> (Maybe Subst, SLDTree)
+mapSLD p v (a,b) = (a, sld1 p b (v ++ substToVarName a))
+
+filterNothing :: [(Maybe Subst, a)] -> [(Maybe Subst, a)]
+filterNothing ls = filter (\(a,_) -> a /= Nothing) ls
+
+list :: Prog -> Goal -> [VarName] -> [(Maybe Subst, Goal)]
+list (Prog ps) (Goal (g:gs)) v = zip substs goals
    where
       substs = map (\(Rule r _) -> unify r g) (renameRules (allVars g ++ v) ps)
-      goals = map (\(Rule r rs) -> Goal (map (apply (extract (unify r g))) rs)) (renameRules (allVars g ++ v) ps)
+      goals  = map (\(Rule r rs) -> Goal (mapApply (extract (unify r g)) (rs ++ gs))) (renameRules (allVars g ++ v) ps)
 
-substToVarName :: [Maybe Subst] -> [VarName]
-substToVarName [] = []
-substToVarName (Nothing : xs) = substToVarName xs
-substToVarName ((Just (Subst [])) : _) = []
-substToVarName ((Just (Subst ((v, _) : ss))) : r) = (v : substToVarName [Just (Subst ss)]) ++ substToVarName r
+mapApply :: Subst -> [Term] -> [Term]
+mapApply s ts = map (apply s) ts
 
 -- Renames the rules of a program.
 renameRules :: [VarName] -> [Rule] -> [Rule]
 renameRules vars rs = map (rename vars) rs
 
--- Puts / Calls the 'sld'-function within a tupel.
-sldTupel :: Prog -> [VarName] -> [Maybe Subst] -> (Maybe Subst, Goal) -> (Maybe Subst, SLDTree)
-sldTupel p v w (a,b)  = (a, sld1 p b (v ++ substToVarName w))
+substToVarName :: Maybe Subst -> [VarName]
+substToVarName Nothing = []
+substToVarName (Just (Subst [])) = []
+substToVarName (Just (Subst ((a,_):xs))) = a : substToVarName (Just (Subst xs))
 
 instance Pretty SLDTree where
    pretty tree = prettyTree 0 tree
@@ -65,7 +73,7 @@ goal3 :: Goal
 goal3 = Goal [Comb "append" [Var (VarName "X"), Var (VarName "Y"), Comb "." [Comb "1" [], Comb "[]" []]]]
 
 goal4 :: Goal
-goal4 = Goal [Comb "append" [Var (VarName "X"), Var (VarName "Y"), (Var (VarName "Z"))]]
+goal4 = Goal [Comb "append" [Var (VarName "X"), Var (VarName "Y"), Var (VarName "Z")]]
 
 
 type Strategy = SLDTree -> [Subst]
@@ -82,7 +90,7 @@ filterSubst _ (Subst []) = Subst []
 filterSubst v (Subst (s:ss)) | fst s `elem` v = Subst [s] `combine` filterSubst v (Subst ss)
                              | otherwise = filterSubst v (Subst ss)
 
-combine :: Subst -> Subst -> Subst 
+combine :: Subst -> Subst -> Subst
 combine (Subst s1) (Subst s2) = Subst (s1++s2)
 
 dfs1 :: [Subst] -> SLDTree -> [Subst]
@@ -96,7 +104,7 @@ viaCompose :: [Subst] -> Subst
 viaCompose [] = Subst []
 viaCompose (x:xs) = compose x (viaCompose xs)
 
-isLeaf :: SLDTree -> Bool 
+isLeaf :: SLDTree -> Bool
 isLeaf (SLDTree (Goal [Comb g _]) _) = g == ""
 isLeaf _ = False
 
@@ -117,3 +125,19 @@ mapf2 s (a,b) | isLeaf b  = extract a : s
 
 solveWith :: Prog -> Goal -> Strategy -> [Subst]
 solveWith p g s = s (sld p g)
+
+
+
+-- neue Tests ---
+
+progA :: Prog
+progA = Prog [Rule (Comb "p" [Var (VarName "A"),Var (VarName "B")]) [Comb "a" [Var(VarName "A")], Comb "b" [Var (VarName "B")]],Rule (Comb "q" []) [Comb "p" [Comb "_" [], Comb "_" []]],Rule (Comb "a" [Comb "a" []]) [],Rule (Comb "b" [Comb "b" []]) []]
+
+goalA1 :: Goal
+goalA1 = Goal [Comb "p" [Var (VarName "A"), Var (VarName "B")]]
+goalA2 :: Goal
+goalA2 = Goal [Comb "p" [Comb "_" [], Comb "_" []]]
+goalA3 :: Goal
+goalA3 = Goal [Comb "q" []]
+
+

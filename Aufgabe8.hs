@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 import Parser
 import Type
 import Aufgabe2
